@@ -29,21 +29,21 @@ Backend
 git clone <repository-url>
 
 # 2. Install dependencies
-cd plotfinder
-cd backend
-npm install
+cd plotfinder<br>
+cd backend<br>
+npm install<br>
 
-cd ..
-cd frontend/vite-project
+cd ..<br>
+cd frontend/vite-project<br>
 npm install
 
 # 3 Setup environment variable
 Inside the backend folder, create a .env file.
 
 # 4 Run the server and app
-cd backend
-npx nodemon server.js 
+cd backend<br>
+npx nodemon server.js<br>
 
-Open another terminal:
-cd frontend/vite-project
-npm run dev
+Open another terminal:<br>
+cd frontend/vite-project<br>
+npm run dev<br>
