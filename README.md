@@ -37,10 +37,10 @@ cd ..
 cd frontend/vite-project
 npm install
 
-#3 Setup environment variable
+# 3 Setup environment variable
 Inside the backend folder, create a .env file.
 
-#4 Run the server and app
+# 4 Run the server and app
 cd backend
 npx nodemon server.js 
 
