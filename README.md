@@ -28,7 +28,7 @@ Backend
 # 1. Clone the Repository
 git clone <repository-url>
 
-#2. Install dependencies
+# 2. Install dependencies
 cd plotfinder
 cd backend
 npm install
