@@ -13,6 +13,11 @@
   flex-wrap: wrap;
 }
 
+.status-under_review {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
 .dashboard-badge {
   display: inline-block;
   background: #dcfce7;

@@ -23,9 +23,11 @@ function UserDashboard() {
   });
 
   const [myPosts, setMyPosts] = useState([]);
+  const [myBuyRequests, setMyBuyRequests] = useState([]);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingRequests, setLoadingRequests] = useState(true);
 
   const fetchMyPosts = async () => {
     try {
@@ -51,8 +53,33 @@ function UserDashboard() {
     }
   };
 
+  const fetchMyBuyRequests = async () => {
+    try {
+      setLoadingRequests(true);
+
+      const response = await fetch("http://localhost:5000/api/buy-requests/my-requests", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch your buy requests");
+      }
+
+      setMyBuyRequests(data);
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
   useEffect(() => {
     fetchMyPosts();
+    fetchMyBuyRequests();
   }, []);
 
   const handleChange = (e) => {
@@ -132,7 +159,7 @@ function UserDashboard() {
         </div>
 
         <div className="dashboard-user-card">
-          <h3>Seller Info</h3>
+          <h3>User Info</h3>
           <p>
             <strong>Name:</strong> {storedUser?.firstName} {storedUser?.lastName}
           </p>
@@ -362,6 +389,59 @@ function UserDashboard() {
                     <strong>Approved At:</strong> {new Date(post.approvedAt).toLocaleString()}
                   </p>
                 )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="my-posts-section">
+        <div className="section-heading">
+          <h2>My Buy Requests</h2>
+          <p>Track the land requests you have submitted as a buyer.</p>
+        </div>
+
+        {loadingRequests && <p className="dashboard-info">Loading your buy requests...</p>}
+        {!loadingRequests && myBuyRequests.length === 0 && (
+          <p className="dashboard-info">You have not submitted any buy requests yet.</p>
+        )}
+
+        <div className="my-posts-grid">
+          {myBuyRequests.map((request) => (
+            <div className="my-post-card" key={request._id}>
+              <div className="my-post-top">
+                <div>
+                  <span className={`status-badge status-${request.status}`}>
+                    {request.status}
+                  </span>
+                  <h3>{request.landId?.title || "Land unavailable"}</h3>
+                </div>
+                <p className="post-price">
+                  ৳ {Number(request.offeredPrice).toLocaleString()}
+                </p>
+              </div>
+
+              <p className="post-description">{request.message}</p>
+
+              <div className="post-meta">
+                <p>
+                  <strong>Land Price:</strong> ৳{" "}
+                  {Number(request.landId?.price || 0).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Land Size:</strong> {request.landId?.landSizeSqft || "N/A"} sqft
+                </p>
+                <p>
+                  <strong>Location:</strong>{" "}
+                  {request.landId?.location
+                    ? `${request.landId.location.district}, ${request.landId.location.division}`
+                    : "N/A"}
+                </p>
+                <p><strong>Purpose:</strong> {request.purpose || "Not specified"}</p>
+                <p>
+                  <strong>Preferred Contact:</strong> {request.preferredContactMethod}
+                </p>
+                <p><strong>Submitted:</strong> {new Date(request.createdAt).toLocaleString()}</p>
               </div>
             </div>
           ))}
