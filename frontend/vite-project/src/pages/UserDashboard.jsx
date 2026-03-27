@@ -23,9 +23,13 @@ function UserDashboard() {
   });
 
   const [myPosts, setMyPosts] = useState([]);
+  const [myBuyRequests, setMyBuyRequests] = useState([]);
+  const [incomingRequests, setIncomingRequests] = useState([]);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [loadingRequests, setLoadingRequests] = useState(true);
+  const [loadingIncomingRequests, setLoadingIncomingRequests] = useState(true);
 
   const fetchMyPosts = async () => {
     try {
@@ -51,8 +55,95 @@ function UserDashboard() {
     }
   };
 
+  const fetchMyBuyRequests = async () => {
+    try {
+      setLoadingRequests(true);
+
+      const response = await fetch("http://localhost:5000/api/buy-requests/my-requests", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch your buy requests");
+      }
+
+      setMyBuyRequests(data);
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  const fetchIncomingRequests = async () => {
+  try {
+    setLoadingIncomingRequests(true);
+
+    const response = await fetch("http://localhost:5000/api/buy-requests/incoming", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch incoming requests");
+    }
+
+    setIncomingRequests(data);
+  } catch (error) {
+    setErrorMessage(error.message);
+  } finally {
+    setLoadingIncomingRequests(false);
+  }
+};
+
+const handleUpdateRequestStatus = async (requestId, status) => {
+  console.log("clicked", requestId, status);
+  try {
+    setMessage("");
+    setErrorMessage("");
+
+    const response = await fetch(
+      `http://localhost:5000/api/buy-requests/${requestId}/status`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to update request status");
+    }
+
+    setIncomingRequests((prev) =>
+      prev.map((request) =>
+        request._id === requestId ? { ...request, status } : request
+      )
+    );
+
+    setMessage(data.message);
+  } catch (error) {
+    setErrorMessage(error.message);
+  }
+};
+
+
   useEffect(() => {
     fetchMyPosts();
+    fetchMyBuyRequests();
+    fetchIncomingRequests();
   }, []);
 
   const handleChange = (e) => {
@@ -132,7 +223,7 @@ function UserDashboard() {
         </div>
 
         <div className="dashboard-user-card">
-          <h3>Seller Info</h3>
+          <h3>User Info</h3>
           <p>
             <strong>Name:</strong> {storedUser?.firstName} {storedUser?.lastName}
           </p>
@@ -367,6 +458,106 @@ function UserDashboard() {
           ))}
         </div>
       </div>
+
+      <div className="my-posts-section">
+        <div className="section-heading">
+          <h2>My Buy Requests</h2>
+          <p>Track the land requests you have submitted as a buyer.</p>
+        </div>
+
+        {loadingRequests && <p className="dashboard-info">Loading your buy requests...</p>}
+        {!loadingRequests && myBuyRequests.length === 0 && (
+          <p className="dashboard-info">You have not submitted any buy requests yet.</p>
+        )}
+
+        <div className="my-posts-grid">
+          {myBuyRequests.map((request) => (
+            <div className="my-post-card" key={request._id}>
+              <div className="my-post-top">
+                <div>
+                  <span className={`status-badge status-${request.status}`}>
+                    {request.status}
+                  </span>
+                  <h3>{request.landId?.title || "Land unavailable"}</h3>
+                </div>
+                <p className="post-price">
+                  ৳ {Number(request.offeredPrice).toLocaleString()}
+                </p>
+              </div>
+
+              <p className="post-description">{request.message}</p>
+
+              <div className="post-meta">
+                <p>
+                  <strong>Land Price:</strong> ৳{" "}
+                  {Number(request.landId?.price || 0).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Land Size:</strong> {request.landId?.landSizeSqft || "N/A"} sqft
+                </p>
+                <p>
+                  <strong>Location:</strong>{" "}
+                  {request.landId?.location
+                    ? `${request.landId.location.district}, ${request.landId.location.division}`
+                    : "N/A"}
+                </p>
+                <p><strong>Purpose:</strong> {request.purpose || "Not specified"}</p>
+                <p>
+                  <strong>Preferred Contact:</strong> {request.preferredContactMethod}
+                </p>
+                <p><strong>Submitted:</strong> {new Date(request.createdAt).toLocaleString()}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="my-posts-section">
+  <div className="section-heading">
+    <h2>Incoming Requests for My Lands</h2>
+    <p>See buyer interest for your lands</p>
+  </div>
+
+  {loadingIncomingRequests && <p>Loading...</p>}
+
+  <div className="my-posts-grid">
+    {incomingRequests.map((request) => (
+      <div className="my-post-card" key={request._id}>
+        <span className={`status-badge status-${request.status}`}>
+          {request.status}
+        </span>
+
+        <h3>{request.landId?.title}</h3>
+
+        <p><strong>Offer:</strong> ৳ {request.offeredPrice}</p>
+        <p><strong>Buyer:</strong> {request.buyerFirstName}</p>
+        <p><strong>Phone:</strong> {request.buyerPhone}</p>
+
+        <div className="request-action-buttons">
+          <button
+            type="button"
+            onClick={() => handleUpdateRequestStatus(request._id, "under_review")}
+          >
+            Review
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleUpdateRequestStatus(request._id, "accepted")}
+          >
+            Accept
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleUpdateRequestStatus(request._id, "rejected")}
+          >
+            Reject
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
     </div>
   );
 }

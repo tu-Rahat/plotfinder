@@ -1,0 +1,206 @@
+.land-details-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 48px 24px 70px;
+}
+
+.land-details-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 0.9fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.land-details-main,
+.buy-request-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 22px;
+  padding: 28px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.05);
+}
+
+.land-details-type {
+  display: inline-block;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.land-details-main h1 {
+  font-size: 38px;
+  color: #111827;
+  margin-bottom: 14px;
+}
+
+.land-details-price {
+  font-size: 30px;
+  font-weight: 700;
+  color: #15803d;
+  margin-bottom: 18px;
+}
+
+.land-details-description {
+  color: #4b5563;
+  line-height: 1.8;
+  margin-bottom: 24px;
+  font-size: 16px;
+}
+
+.land-details-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.land-info-box {
+  background: #f9fafb;
+  border: 1px solid #eef2f7;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.land-info-box span {
+  display: block;
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.land-info-box strong {
+  color: #111827;
+  font-size: 16px;
+}
+
+.land-details-section + .land-details-section {
+  margin-top: 22px;
+}
+
+.land-details-section h3 {
+  margin-bottom: 10px;
+  font-size: 20px;
+  color: #111827;
+}
+
+.land-details-section p {
+  color: #4b5563;
+  line-height: 1.8;
+  margin: 0 0 6px;
+}
+
+.buy-request-card h2 {
+  font-size: 28px;
+  color: #111827;
+  margin-bottom: 10px;
+}
+
+.buy-request-card p {
+  color: #6b7280;
+  line-height: 1.7;
+  margin-bottom: 18px;
+}
+
+.buy-request-form {
+  display: grid;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 13px 14px;
+  font-size: 15px;
+  color: #111827;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.request-submit-btn {
+  border: none;
+  background: #16a34a;
+  color: #ffffff;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.request-submit-btn:hover {
+  background: #15803d;
+  transform: translateY(-1px);
+}
+
+.success-message {
+  color: #15803d;
+  font-weight: 600;
+  margin: 0;
+}
+
+.error-message {
+  color: #dc2626;
+  font-weight: 600;
+  margin: 0;
+}
+
+.land-details-message {
+  text-align: center;
+  font-size: 18px;
+  padding: 60px 20px;
+  color: #4b5563;
+}
+
+@media (max-width: 960px) {
+  .land-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .land-details-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .land-details-main h1 {
+    font-size: 30px;
+  }
+
+  .land-details-main,
+  .buy-request-card {
+    padding: 20px;
+  }
+}
