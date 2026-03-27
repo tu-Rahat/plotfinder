@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./BrowseLands.css";
 
 function BrowseLands() {
   const [lands, setLands] = useState([]);
@@ -27,63 +28,91 @@ function BrowseLands() {
   }, []);
 
   return (
-    <div style={{ maxWidth: "1200px", margin: "40px auto", padding: "0 20px" }}>
-      <h1 style={{ marginBottom: "10px" }}>Browse Lands</h1>
-      <p style={{ marginBottom: "30px", color: "#555" }}>
-        Only admin-approved land posts are visible here.
-      </p>
+    <div className="browse-lands-page">
+      <div className="browse-lands-header">
+        <span className="browse-badge">Approved Listings</span>
+        <h1>Browse Lands</h1>
+        <p>
+          Discover verified land posts approved by admin. Explore location,
+          size, price, and seller information in a cleaner marketplace view.
+        </p>
+      </div>
 
-      {loading && <p>Loading approved land posts...</p>}
-      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+      {loading && <p className="browse-message">Loading approved land posts...</p>}
+      {errorMessage && <p className="browse-error">{errorMessage}</p>}
+      {!loading && lands.length === 0 && (
+        <p className="browse-message">No approved lands available yet.</p>
+      )}
 
-      {!loading && lands.length === 0 && <p>No approved lands available yet.</p>}
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: "20px",
-        }}
-      >
+      <div className="lands-grid">
         {lands.map((land) => (
-          <div
-            key={land._id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: "12px",
-              padding: "20px",
-              background: "#fff",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
-            }}
-          >
-            <h3 style={{ marginBottom: "10px" }}>{land.title}</h3>
-            <p style={{ marginBottom: "10px", color: "#444" }}>{land.description}</p>
+          <div className="land-card" key={land._id}>
+            <div className="land-card-top">
+              <div>
+                <p className="land-type-badge">{land.landType}</p>
+                <h2>{land.title}</h2>
+              </div>
+              <div className="land-price">
+                <span>Price</span>
+                <h3>৳ {Number(land.price).toLocaleString()}</h3>
+              </div>
+            </div>
 
-            <p><strong>Type:</strong> {land.landType}</p>
-            <p><strong>Price:</strong> ৳ {land.price}</p>
-            <p><strong>Size:</strong> {land.landSizeSqft} sqft</p>
-            <p>
-              <strong>Location:</strong> {land.location.address}, {land.location.upazila},{" "}
-              {land.location.district}, {land.location.division}
-            </p>
+            <p className="land-description">{land.description}</p>
 
-            {land.ownershipType && (
-              <p><strong>Ownership:</strong> {land.ownershipType}</p>
-            )}
+            <div className="land-highlights">
+              <div className="highlight-box">
+                <span>Size</span>
+                <strong>{land.landSizeSqft} sqft</strong>
+              </div>
+              <div className="highlight-box">
+                <span>Negotiable</span>
+                <strong>{land.priceNegotiable ? "Yes" : "No"}</strong>
+              </div>
+              <div className="highlight-box">
+                <span>Ownership</span>
+                <strong>{land.ownershipType || "Not specified"}</strong>
+              </div>
+              <div className="highlight-box">
+                <span>Road Access</span>
+                <strong>{land.roadAccess || "Not specified"}</strong>
+              </div>
+            </div>
 
-            {land.roadAccess && (
-              <p><strong>Road Access:</strong> {land.roadAccess}</p>
-            )}
+            <div className="land-section">
+              <h4>Location</h4>
+              <p>
+                {land.location.address}, {land.location.upazila},{" "}
+                {land.location.district}, {land.location.division}
+              </p>
+            </div>
 
             {land.nearbyLandmark && (
-              <p><strong>Nearby Landmark:</strong> {land.nearbyLandmark}</p>
+              <div className="land-section">
+                <h4>Nearby Landmark</h4>
+                <p>{land.nearbyLandmark}</p>
+              </div>
             )}
 
-            <p><strong>Negotiable:</strong> {land.priceNegotiable ? "Yes" : "No"}</p>
-            <p><strong>Seller:</strong> {land.sellerFirstName} {land.sellerLastName}</p>
-            <p><strong>Email:</strong> {land.sellerEmail}</p>
-            <p><strong>Phone:</strong> {land.sellerPhone}</p>
-            <p><strong>Posted:</strong> {new Date(land.createdAt).toLocaleString()}</p>
+            <div className="land-footer">
+              <div className="seller-info">
+                <h4>Seller Info</h4>
+                <p>
+                  <strong>Name:</strong> {land.sellerFirstName} {land.sellerLastName}
+                </p>
+                <p>
+                  <strong>Email:</strong> {land.sellerEmail}
+                </p>
+                <p>
+                  <strong>Phone:</strong> {land.sellerPhone}
+                </p>
+              </div>
+
+              <div className="posted-info">
+                <h4>Posted On</h4>
+                <p>{new Date(land.createdAt).toLocaleString()}</p>
+              </div>
+            </div>
           </div>
         ))}
       </div>
