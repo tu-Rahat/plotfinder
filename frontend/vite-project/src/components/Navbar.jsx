@@ -18,7 +18,7 @@ function Navbar() {
         const parsedUser = JSON.parse(savedUser);
 
         // Skip admin for now in navbar UI
-        if (parsedUser?.role === "user") {
+        if (parsedUser) {
           setLoggedInUser(parsedUser);
         } else {
           setLoggedInUser(null);
@@ -44,7 +44,7 @@ function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
+  // logout function that clears local storage and redirects to home page
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -66,10 +66,20 @@ function Navbar() {
 
         <ul className="navbar-links">
           <li>
-            <Link to="/">Browse Lands</Link>
+            <Link to="/lands">Browse Lands</Link>
           </li>
           <li>
-            <Link to="/register">List Property</Link>
+            <Link
+              to={
+                !loggedInUser
+                ? "/register"
+                : loggedInUser.role === "admin"
+                ? "/admin-dashboard"
+                : "/user-dashboard"
+                  }
+              >
+                List Property
+              </Link>
           </li>
         </ul>
 
@@ -98,7 +108,7 @@ function Navbar() {
                 </p>
 
                 <Link
-                  to="/user-dashboard"
+                  to={loggedInUser?.role === "admin" ? "/admin-dashboard" : "/user-dashboard"}
                   className="dropdown-item"
                   onClick={() => setShowDropdown(false)}
                 >
