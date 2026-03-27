@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./BrowseLands.css";
 
 function BrowseLands() {
   const [lands, setLands] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -63,7 +65,12 @@ function BrowseLands() {
               {land.description.slice(0, 90)}...
             </p>
 
-            <button className="view-btn">View Details</button>
+            <button
+              className="view-btn"
+              onClick={() => navigate(`/lands/${land._id}`)}
+            >
+              View Details
+            </button>
           </div>
         ))}
       </div>

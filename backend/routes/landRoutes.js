@@ -7,6 +7,7 @@ const {
   getMyLandPosts,
   getPendingLands,
   approveLandPost,
+  getSingleLand,
 } = require("../controllers/landController");
 
 const { protect } = require("../middleware/authMiddleware");
@@ -17,5 +18,5 @@ router.post("/", protect, userOnly, createLandPost);
 router.get("/my-posts", protect, userOnly, getMyLandPosts);
 router.get("/pending", protect, adminOnly, getPendingLands);
 router.patch("/:id/approve", protect, adminOnly, approveLandPost);
-
+router.get("/:id", getSingleLand);
 module.exports = router;

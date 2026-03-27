@@ -91,6 +91,23 @@ const createLandPost = async (req, res) => {
   }
 };
 
+const getSingleLand = async (req, res) => {
+  try {
+    const land = await Land.findById(req.params.id);
+
+    if (!land) {
+      return res.status(404).json({ message: "Land not found" });
+    }
+
+    return res.status(200).json(land);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error fetching land",
+      error: error.message,
+    });
+  }
+};
+
 const getApprovedLands = async (req, res) => {
   try {
     const lands = await Land.find({ status: "approved" }).sort({ createdAt: -1 });
@@ -167,4 +184,5 @@ module.exports = {
   getMyLandPosts,
   getPendingLands,
   approveLandPost,
+  getSingleLand,
 };
