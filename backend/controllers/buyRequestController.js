@@ -144,10 +144,57 @@ const getRequestsForMyLands = async (req, res) => {
   }
 };
 
+const updateBuyRequestStatus = async (req, res) => {
+  try {
+    const sellerId = req.user?.id || req.user?._id || req.user?.userId;
+    const { id } = req.params;
+    const { status } = req.body;
 
+    if (!sellerId) {
+      return res.status(401).json({
+        message: "Invalid user. Please login again.",
+      });
+    }
+
+    if (!["under_review", "accepted", "rejected"].includes(status)) {
+      return res.status(400).json({
+        message: "Invalid status value",
+      });
+    }
+
+    const request = await BuyRequest.findById(id);
+
+    if (!request) {
+      return res.status(404).json({
+        message: "Buy request not found",
+      });
+    }
+
+    if (String(request.sellerId) !== String(sellerId)) {
+      return res.status(403).json({
+        message: "You can only update requests for your own lands",
+      });
+    }
+
+    request.status = status;
+    await request.save();
+
+    return res.status(200).json({
+      message: "Buy request status updated successfully",
+      request,
+    });
+  } catch (error) {
+    console.error("Update buy request status error:", error);
+
+    return res.status(500).json({
+      message: error.message || "Server error while updating buy request status",
+    });
+  }
+};
 
 module.exports = {
   createBuyRequest,
   getMyBuyRequests,
   getRequestsForMyLands,
+  updateBuyRequestStatus,
 };

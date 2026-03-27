@@ -271,6 +271,11 @@
   color: #15803d;
 }
 
+.status-accepted {
+  background: #dcfce7;
+  color: #15803d;
+}
+
 .status-rejected {
   background: #fee2e2;
   color: #dc2626;
@@ -312,4 +317,28 @@
   .submit-post-btn {
     width: 100%;
   }
+}
+.request-action-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.request-action-buttons button {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.request-action-buttons button:nth-child(1) {
+  background: #dbeafe;
+}
+
+.request-action-buttons button:nth-child(2) {
+  background: #dcfce7;
+}
+
+.request-action-buttons button:nth-child(3) {
+  background: #fee2e2;
 }

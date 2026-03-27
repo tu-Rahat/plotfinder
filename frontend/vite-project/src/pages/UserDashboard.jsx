@@ -103,6 +103,42 @@ function UserDashboard() {
   }
 };
 
+const handleUpdateRequestStatus = async (requestId, status) => {
+  console.log("clicked", requestId, status);
+  try {
+    setMessage("");
+    setErrorMessage("");
+
+    const response = await fetch(
+      `http://localhost:5000/api/buy-requests/${requestId}/status`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to update request status");
+    }
+
+    setIncomingRequests((prev) =>
+      prev.map((request) =>
+        request._id === requestId ? { ...request, status } : request
+      )
+    );
+
+    setMessage(data.message);
+  } catch (error) {
+    setErrorMessage(error.message);
+  }
+};
+
 
   useEffect(() => {
     fetchMyPosts();
@@ -478,57 +514,45 @@ function UserDashboard() {
       <div className="my-posts-section">
   <div className="section-heading">
     <h2>Incoming Requests for My Lands</h2>
-    <p>See buyer interest for the lands you have posted.</p>
+    <p>See buyer interest for your lands</p>
   </div>
 
-  {loadingIncomingRequests && (
-    <p className="dashboard-info">Loading incoming requests...</p>
-  )}
-
-  {!loadingIncomingRequests && incomingRequests.length === 0 && (
-    <p className="dashboard-info">No incoming buy requests for your lands yet.</p>
-  )}
+  {loadingIncomingRequests && <p>Loading...</p>}
 
   <div className="my-posts-grid">
     {incomingRequests.map((request) => (
       <div className="my-post-card" key={request._id}>
-        <div className="my-post-top">
-          <div>
-            <span className={`status-badge status-${request.status}`}>
-              {request.status}
-            </span>
-            <h3>{request.landId?.title || "Land unavailable"}</h3>
-          </div>
-          <p className="post-price">
-            ৳ {Number(request.offeredPrice).toLocaleString()}
-          </p>
-        </div>
+        <span className={`status-badge status-${request.status}`}>
+          {request.status}
+        </span>
 
-        <p className="post-description">{request.message}</p>
+        <h3>{request.landId?.title}</h3>
 
-        <div className="post-meta">
-          <p>
-            <strong>Buyer Name:</strong> {request.buyerFirstName} {request.buyerLastName}
-          </p>
-          <p>
-            <strong>Buyer Email:</strong> {request.buyerEmail}
-          </p>
-          <p>
-            <strong>Buyer Phone:</strong> {request.buyerPhone}
-          </p>
-          <p>
-            <strong>Purpose:</strong> {request.purpose || "Not specified"}
-          </p>
-          <p>
-            <strong>Preferred Contact:</strong> {request.preferredContactMethod}
-          </p>
-          <p>
-            <strong>Land Price:</strong> ৳{" "}
-            {Number(request.landId?.price || 0).toLocaleString()}
-          </p>
-          <p>
-            <strong>Submitted:</strong> {new Date(request.createdAt).toLocaleString()}
-          </p>
+        <p><strong>Offer:</strong> ৳ {request.offeredPrice}</p>
+        <p><strong>Buyer:</strong> {request.buyerFirstName}</p>
+        <p><strong>Phone:</strong> {request.buyerPhone}</p>
+
+        <div className="request-action-buttons">
+          <button
+            type="button"
+            onClick={() => handleUpdateRequestStatus(request._id, "under_review")}
+          >
+            Review
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleUpdateRequestStatus(request._id, "accepted")}
+          >
+            Accept
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleUpdateRequestStatus(request._id, "rejected")}
+          >
+            Reject
+          </button>
         </div>
       </div>
     ))}
