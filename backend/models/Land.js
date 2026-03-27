@@ -1,0 +1,101 @@
+const mongoose = require("mongoose");
+
+const landSchema = new mongoose.Schema(
+  {
+    sellerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    sellerFirstName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    sellerLastName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    sellerEmail: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    sellerPhone: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    landType: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    price: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    landSizeSqft: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    location: {
+      division: { type: String, required: true, trim: true },
+      district: { type: String, required: true, trim: true },
+      upazila: { type: String, required: true, trim: true },
+      address: { type: String, required: true, trim: true },
+    },
+
+    ownershipType: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    roadAccess: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    nearbyLandmark: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    priceNegotiable: {
+      type: Boolean,
+      default: false,
+    },
+
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+    approvedAt: {
+      type: Date,
+      default: null,
+    },
+    approvedBy: {
+      type: String,
+      default: "",
+    },
+  },
+  { timestamps: true }
+);
+
+module.exports = mongoose.model("Land", landSchema);
