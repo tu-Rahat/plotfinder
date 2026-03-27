@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./UserDashboard.css";
 
 function UserDashboard() {
   const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -119,147 +120,249 @@ function UserDashboard() {
   };
 
   return (
-    <div style={{ maxWidth: "1200px", margin: "40px auto", padding: "0 20px" }}>
-      <h1>User Dashboard</h1>
-      <p style={{ marginBottom: "20px", color: "#555" }}>
-        Create a land post for selling. Your post will stay pending until admin approves it.
-      </p>
-
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          display: "grid",
-          gap: "14px",
-          background: "#fff",
-          padding: "24px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 14px rgba(0,0,0,0.06)",
-          marginBottom: "40px",
-        }}
-      >
-        <h2>Create Post for Selling Land</h2>
-
-        <input name="title" placeholder="Land title" value={formData.title} onChange={handleChange} required />
-        <textarea
-          name="description"
-          placeholder="Describe the land"
-          value={formData.description}
-          onChange={handleChange}
-          required
-          rows="4"
-        />
-
-        <select name="landType" value={formData.landType} onChange={handleChange}>
-          <option value="Residential">Residential</option>
-          <option value="Commercial">Commercial</option>
-          <option value="Agricultural">Agricultural</option>
-          <option value="Industrial">Industrial</option>
-          <option value="Other">Other</option>
-        </select>
-
-        <input
-          type="number"
-          name="price"
-          placeholder="Price"
-          value={formData.price}
-          onChange={handleChange}
-          required
-        />
-
-        <input
-          type="number"
-          name="landSizeSqft"
-          placeholder="Land size in square feet"
-          value={formData.landSizeSqft}
-          onChange={handleChange}
-          required
-        />
-
-        <input name="division" placeholder="Division" value={formData.division} onChange={handleChange} required />
-        <input name="district" placeholder="District" value={formData.district} onChange={handleChange} required />
-        <input name="upazila" placeholder="Upazila" value={formData.upazila} onChange={handleChange} required />
-        <input name="address" placeholder="Full address" value={formData.address} onChange={handleChange} required />
-
-        <input
-          name="ownershipType"
-          placeholder="Ownership type (optional)"
-          value={formData.ownershipType}
-          onChange={handleChange}
-        />
-
-        <input
-          name="roadAccess"
-          placeholder="Road access (optional)"
-          value={formData.roadAccess}
-          onChange={handleChange}
-        />
-
-        <input
-          name="nearbyLandmark"
-          placeholder="Nearby landmark (optional)"
-          value={formData.nearbyLandmark}
-          onChange={handleChange}
-        />
-
-        <input
-          name="sellerPhone"
-          placeholder="Phone number"
-          value={formData.sellerPhone}
-          onChange={handleChange}
-          required
-        />
-
-        <label>
-          <input
-            type="checkbox"
-            name="priceNegotiable"
-            checked={formData.priceNegotiable}
-            onChange={handleChange}
-          />{" "}
-          Price negotiable
-        </label>
-
+    <div className="dashboard-page">
+      <div className="dashboard-header">
         <div>
-          <p><strong>Seller Email:</strong> {storedUser?.email}</p>
-          <p><strong>Seller Name:</strong> {storedUser?.firstName} {storedUser?.lastName}</p>
+          <span className="dashboard-badge">Seller Dashboard</span>
+          <h1>Post Your Land for Sale</h1>
+          <p>
+            Create a land listing with clear information. Your post will stay pending
+            until it is reviewed and approved by admin.
+          </p>
         </div>
 
-        <button type="submit">Submit Land Post</button>
+        <div className="dashboard-user-card">
+          <h3>Seller Info</h3>
+          <p>
+            <strong>Name:</strong> {storedUser?.firstName} {storedUser?.lastName}
+          </p>
+          <p>
+            <strong>Email:</strong> {storedUser?.email}
+          </p>
+        </div>
+      </div>
 
-        {message && <p style={{ color: "green" }}>{message}</p>}
-        {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+      <form className="sell-form-card" onSubmit={handleSubmit}>
+        <div className="form-section">
+          <h2>Basic Information</h2>
+          <div className="form-grid">
+            <div className="form-group full-width">
+              <label>Land Title</label>
+              <input
+                name="title"
+                placeholder="Ex: Premium Residential Plot in Dhaka"
+                value={formData.title}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group full-width">
+              <label>Description</label>
+              <textarea
+                name="description"
+                placeholder="Write a short but useful description of the land"
+                value={formData.description}
+                onChange={handleChange}
+                required
+                rows="5"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Land Type</label>
+              <select name="landType" value={formData.landType} onChange={handleChange}>
+                <option value="Residential">Residential</option>
+                <option value="Commercial">Commercial</option>
+                <option value="Agricultural">Agricultural</option>
+                <option value="Industrial">Industrial</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Price</label>
+              <input
+                type="number"
+                name="price"
+                placeholder="Enter asking price"
+                value={formData.price}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Land Size (sqft)</label>
+              <input
+                type="number"
+                name="landSizeSqft"
+                placeholder="Enter land size"
+                value={formData.landSizeSqft}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group checkbox-group">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="priceNegotiable"
+                  checked={formData.priceNegotiable}
+                  onChange={handleChange}
+                />
+                Price negotiable
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h2>Location Details</h2>
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Division</label>
+              <input
+                name="division"
+                placeholder="Division"
+                value={formData.division}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>District</label>
+              <input
+                name="district"
+                placeholder="District"
+                value={formData.district}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Upazila</label>
+              <input
+                name="upazila"
+                placeholder="Upazila"
+                value={formData.upazila}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group full-width">
+              <label>Full Address</label>
+              <input
+                name="address"
+                placeholder="House/Road/Area details"
+                value={formData.address}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h2>Extra Details</h2>
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Ownership Type</label>
+              <input
+                name="ownershipType"
+                placeholder="Ex: Single / Shared"
+                value={formData.ownershipType}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Road Access</label>
+              <input
+                name="roadAccess"
+                placeholder="Ex: 20 ft road / Main road"
+                value={formData.roadAccess}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Nearby Landmark</label>
+              <input
+                name="nearbyLandmark"
+                placeholder="Ex: School, mosque, market"
+                value={formData.nearbyLandmark}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Phone Number</label>
+              <input
+                name="sellerPhone"
+                placeholder="Phone number"
+                value={formData.sellerPhone}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <div>
+            {message && <p className="success-message">{message}</p>}
+            {errorMessage && <p className="error-message">{errorMessage}</p>}
+          </div>
+
+          <button type="submit" className="submit-post-btn">
+            Submit Land Post
+          </button>
+        </div>
       </form>
 
-      <div>
-        <h2>My Land Posts</h2>
+      <div className="my-posts-section">
+        <div className="section-heading">
+          <h2>My Land Posts</h2>
+          <p>Track your submitted listings and approval status.</p>
+        </div>
 
-        {loadingPosts && <p>Loading your posts...</p>}
-        {!loadingPosts && myPosts.length === 0 && <p>You have not submitted any land posts yet.</p>}
+        {loadingPosts && <p className="dashboard-info">Loading your posts...</p>}
+        {!loadingPosts && myPosts.length === 0 && (
+          <p className="dashboard-info">You have not submitted any land posts yet.</p>
+        )}
 
-        <div style={{ display: "grid", gap: "16px" }}>
+        <div className="my-posts-grid">
           {myPosts.map((post) => (
-            <div
-              key={post._id}
-              style={{
-                border: "1px solid #ddd",
-                borderRadius: "12px",
-                padding: "18px",
-                background: "#fff",
-              }}
-            >
-              <h3>{post.title}</h3>
-              <p>{post.description}</p>
-              <p><strong>Status:</strong> {post.status}</p>
-              <p><strong>Price:</strong> ৳ {post.price}</p>
-              <p><strong>Size:</strong> {post.landSizeSqft} sqft</p>
-              <p>
-                <strong>Location:</strong> {post.location.address}, {post.location.upazila},{" "}
-                {post.location.district}, {post.location.division}
-              </p>
-              <p><strong>Posted:</strong> {new Date(post.createdAt).toLocaleString()}</p>
-              {post.approvedAt && (
-                <p><strong>Approved At:</strong> {new Date(post.approvedAt).toLocaleString()}</p>
-              )}
+            <div className="my-post-card" key={post._id}>
+              <div className="my-post-top">
+                <div>
+                  <span className={`status-badge status-${post.status}`}>
+                    {post.status}
+                  </span>
+                  <h3>{post.title}</h3>
+                </div>
+                <p className="post-price">৳ {Number(post.price).toLocaleString()}</p>
+              </div>
+
+              <p className="post-description">{post.description}</p>
+
+              <div className="post-meta">
+                <p><strong>Size:</strong> {post.landSizeSqft} sqft</p>
+                <p>
+                  <strong>Location:</strong> {post.location.district}, {post.location.division}
+                </p>
+                <p><strong>Posted:</strong> {new Date(post.createdAt).toLocaleString()}</p>
+                {post.approvedAt && (
+                  <p>
+                    <strong>Approved At:</strong> {new Date(post.approvedAt).toLocaleString()}
+                  </p>
+                )}
+              </div>
             </div>
           ))}
         </div>
