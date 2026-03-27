@@ -120,7 +120,34 @@ const getMyBuyRequests = async (req, res) => {
   }
 };
 
+const getRequestsForMyLands = async (req, res) => {
+  try {
+    const sellerId = req.user?.id || req.user?._id || req.user?.userId;
+
+    if (!sellerId) {
+      return res.status(401).json({
+        message: "Invalid user. Please login again.",
+      });
+    }
+
+    const requests = await BuyRequest.find({ sellerId })
+      .populate("landId", "title price landSizeSqft location status")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json(requests);
+  } catch (error) {
+    console.error("Get requests for my lands error:", error);
+
+    return res.status(500).json({
+      message: error.message || "Server error while fetching incoming requests",
+    });
+  }
+};
+
+
+
 module.exports = {
   createBuyRequest,
   getMyBuyRequests,
+  getRequestsForMyLands,
 };

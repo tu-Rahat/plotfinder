@@ -24,10 +24,12 @@ function UserDashboard() {
 
   const [myPosts, setMyPosts] = useState([]);
   const [myBuyRequests, setMyBuyRequests] = useState([]);
+  const [incomingRequests, setIncomingRequests] = useState([]);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingRequests, setLoadingRequests] = useState(true);
+  const [loadingIncomingRequests, setLoadingIncomingRequests] = useState(true);
 
   const fetchMyPosts = async () => {
     try {
@@ -77,9 +79,35 @@ function UserDashboard() {
     }
   };
 
+  const fetchIncomingRequests = async () => {
+  try {
+    setLoadingIncomingRequests(true);
+
+    const response = await fetch("http://localhost:5000/api/buy-requests/incoming", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch incoming requests");
+    }
+
+    setIncomingRequests(data);
+  } catch (error) {
+    setErrorMessage(error.message);
+  } finally {
+    setLoadingIncomingRequests(false);
+  }
+};
+
+
   useEffect(() => {
     fetchMyPosts();
     fetchMyBuyRequests();
+    fetchIncomingRequests();
   }, []);
 
   const handleChange = (e) => {
@@ -447,6 +475,65 @@ function UserDashboard() {
           ))}
         </div>
       </div>
+      <div className="my-posts-section">
+  <div className="section-heading">
+    <h2>Incoming Requests for My Lands</h2>
+    <p>See buyer interest for the lands you have posted.</p>
+  </div>
+
+  {loadingIncomingRequests && (
+    <p className="dashboard-info">Loading incoming requests...</p>
+  )}
+
+  {!loadingIncomingRequests && incomingRequests.length === 0 && (
+    <p className="dashboard-info">No incoming buy requests for your lands yet.</p>
+  )}
+
+  <div className="my-posts-grid">
+    {incomingRequests.map((request) => (
+      <div className="my-post-card" key={request._id}>
+        <div className="my-post-top">
+          <div>
+            <span className={`status-badge status-${request.status}`}>
+              {request.status}
+            </span>
+            <h3>{request.landId?.title || "Land unavailable"}</h3>
+          </div>
+          <p className="post-price">
+            ৳ {Number(request.offeredPrice).toLocaleString()}
+          </p>
+        </div>
+
+        <p className="post-description">{request.message}</p>
+
+        <div className="post-meta">
+          <p>
+            <strong>Buyer Name:</strong> {request.buyerFirstName} {request.buyerLastName}
+          </p>
+          <p>
+            <strong>Buyer Email:</strong> {request.buyerEmail}
+          </p>
+          <p>
+            <strong>Buyer Phone:</strong> {request.buyerPhone}
+          </p>
+          <p>
+            <strong>Purpose:</strong> {request.purpose || "Not specified"}
+          </p>
+          <p>
+            <strong>Preferred Contact:</strong> {request.preferredContactMethod}
+          </p>
+          <p>
+            <strong>Land Price:</strong> ৳{" "}
+            {Number(request.landId?.price || 0).toLocaleString()}
+          </p>
+          <p>
+            <strong>Submitted:</strong> {new Date(request.createdAt).toLocaleString()}
+          </p>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
     </div>
   );
 }
