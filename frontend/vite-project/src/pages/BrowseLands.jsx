@@ -47,72 +47,23 @@ function BrowseLands() {
       <div className="lands-grid">
         {lands.map((land) => (
           <div className="land-card" key={land._id}>
-            <div className="land-card-top">
-              <div>
-                <p className="land-type-badge">{land.landType}</p>
-                <h2>{land.title}</h2>
-              </div>
-              <div className="land-price">
-                <span>Price</span>
-                <h3>৳ {Number(land.price).toLocaleString()}</h3>
-              </div>
-            </div>
+            <p className="land-type-badge">{land.landType}</p>
 
-            <p className="land-description">{land.description}</p>
+            <h2>{land.title}</h2>
 
-            <div className="land-highlights">
-              <div className="highlight-box">
-                <span>Size</span>
-                <strong>{land.landSizeSqft} sqft</strong>
-              </div>
-              <div className="highlight-box">
-                <span>Negotiable</span>
-                <strong>{land.priceNegotiable ? "Yes" : "No"}</strong>
-              </div>
-              <div className="highlight-box">
-                <span>Ownership</span>
-                <strong>{land.ownershipType || "Not specified"}</strong>
-              </div>
-              <div className="highlight-box">
-                <span>Road Access</span>
-                <strong>{land.roadAccess || "Not specified"}</strong>
-              </div>
-            </div>
+            <p className="land-price">৳ {Number(land.price).toLocaleString()}</p>
 
-            <div className="land-section">
-              <h4>Location</h4>
-              <p>
-                {land.location.address}, {land.location.upazila},{" "}
-                {land.location.district}, {land.location.division}
-              </p>
-            </div>
+            <p className="land-size">{land.landSizeSqft} sqft</p>
 
-            {land.nearbyLandmark && (
-              <div className="land-section">
-                <h4>Nearby Landmark</h4>
-                <p>{land.nearbyLandmark}</p>
-              </div>
-            )}
+            <p className="land-location">
+              {land.location.district}, {land.location.division}
+            </p>
 
-            <div className="land-footer">
-              <div className="seller-info">
-                <h4>Seller Info</h4>
-                <p>
-                  <strong>Name:</strong> {land.sellerFirstName} {land.sellerLastName}
-                </p>
-                <p>
-                  <strong>Email:</strong> {land.sellerEmail}
-                </p>
-                <p>
-                  <strong>Phone:</strong> {land.sellerPhone}
-                </p>
-              </div>
+            <p className="land-description">
+              {land.description.slice(0, 90)}...
+            </p>
 
-              <div className="posted-info">
-                <h4>Posted On</h4>
-                <p>{new Date(land.createdAt).toLocaleString()}</p>
-              </div>
-            </div>
+            <button className="view-btn">View Details</button>
           </div>
         ))}
       </div>
