@@ -1,168 +1,215 @@
-import { useEffect, useState } from "react";
-import "./AdminDashboard.css";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+
+const API_BASE_URL = "http://localhost:5000";
 
 function AdminDashboard() {
-  const token = localStorage.getItem("token");
-
-  const [pendingPosts, setPendingPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const fetchPendingPosts = async () => {
+  const token = useMemo(() => localStorage.getItem("token"), []);
+  const user = useMemo(() => {
+    const raw = localStorage.getItem("user");
+    if (!raw) return null;
     try {
-      setLoading(true);
-
-      const response = await fetch("http://localhost:5000/api/lands/pending", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch pending posts");
-      }
-
-      setPendingPosts(data);
-    } catch (error) {
-      setErrorMessage(error.message);
-    } finally {
-      setLoading(false);
+      return JSON.parse(raw);
+    } catch {
+      return null;
     }
-  };
-
-  useEffect(() => {
-    fetchPendingPosts();
   }, []);
 
-  const handleApprove = async (id) => {
-    setMessage("");
-    setErrorMessage("");
+  const [formData, setFormData] = useState({
+    title: "",
+    location: "",
+    price: "",
+    acres: "",
+    tag: "",
+    image: "",
+    featuresText: "",
+  });
+  const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [createdList, setCreatedList] = useState([]);
 
+  const isAdmin = user?.role === "admin";
+
+  useEffect(() => {
+    // Reset messages when switching roles/logins.
+    setMessage("");
+    setCreatedList([]);
+  }, [isAdmin]);
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+
+    if (!token) {
+      setMessage("Please login as admin to add properties.");
+      return;
+    }
+    if (!isAdmin) {
+      setMessage("Admin only. Your account does not have permission.");
+      return;
+    }
+
+    const features = formData.featuresText
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    setSubmitting(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/lands/${id}/approve`, {
-        method: "PATCH",
+      const response = await fetch(`${API_BASE_URL}/api/properties`, {
+        method: "POST",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({
+          title: formData.title,
+          location: formData.location,
+          price: formData.price,
+          acres: formData.acres,
+          tag: formData.tag,
+          image: formData.image,
+          features,
+        }),
       });
 
       const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.message || "Failed to approve post");
+        throw new Error(data.message || "Failed to create property");
       }
 
-      setMessage(data.message);
-      setPendingPosts((prev) => prev.filter((item) => item._id !== id));
+      setMessage("Property added successfully.");
+      setCreatedList((prev) => [data.property, ...prev].slice(0, 5));
+      setFormData({
+        title: "",
+        location: "",
+        price: "",
+        acres: "",
+        tag: "",
+        image: "",
+        featuresText: "",
+      });
     } catch (error) {
-      setErrorMessage(error.message);
+      setMessage(error.message || "Failed to create property");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="admin-dashboard-page">
-      <div className="admin-dashboard-header">
-        <div>
-          <span className="admin-badge">Admin Panel</span>
-          <h1>Pending Land Posts</h1>
-          <p>
-            Review submitted land listings, verify seller-provided information,
-            and approve posts before they become visible on the public website.
+    <div className="admin-page">
+      <form className="admin-form" onSubmit={handleSubmit}>
+        <h2>Add Property (Admin)</h2>
+
+        {!token && (
+          <p className="admin-hint">
+            Please <Link to="/login">login</Link> as admin.
           </p>
-        </div>
+        )}
 
-        <div className="admin-summary-card">
-          <h3>Review Summary</h3>
-          <p>
-            <strong>{pendingPosts.length}</strong> pending post
-            {pendingPosts.length !== 1 ? "s" : ""}
+        {token && !isAdmin && (
+          <p className="admin-hint admin-hint-error">
+            You are logged in, but your account is not admin.
           </p>
-          <p>Approve only verified and appropriate listings.</p>
-        </div>
-      </div>
+        )}
 
-      {message && <p className="admin-success-message">{message}</p>}
-      {errorMessage && <p className="admin-error-message">{errorMessage}</p>}
-      {loading && <p className="admin-info-message">Loading pending posts...</p>}
-      {!loading && pendingPosts.length === 0 && (
-        <p className="admin-info-message">No pending land posts right now.</p>
-      )}
+        <label className="admin-input-row">
+          <span>Title</span>
+          <input
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            required
+          />
+        </label>
 
-      <div className="admin-posts-grid">
-        {pendingPosts.map((post) => (
-          <div className="admin-post-card" key={post._id}>
-            <div className="admin-post-top">
-              <div>
-                <span className="admin-status-badge">Pending Review</span>
-                <h3>{post.title}</h3>
+        <label className="admin-input-row">
+          <span>Location</span>
+          <input
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            required
+          />
+        </label>
+
+        <label className="admin-input-row">
+          <span>Price</span>
+          <input
+            name="price"
+            value={formData.price}
+            onChange={handleChange}
+            required
+          />
+        </label>
+
+        <label className="admin-input-row">
+          <span>Acres</span>
+          <input
+            name="acres"
+            value={formData.acres}
+            onChange={handleChange}
+            required
+          />
+        </label>
+
+        <label className="admin-input-row">
+          <span>Tag</span>
+          <input
+            name="tag"
+            value={formData.tag}
+            onChange={handleChange}
+            required
+          />
+        </label>
+
+        <label className="admin-input-row">
+          <span>Image URL</span>
+          <input
+            name="image"
+            value={formData.image}
+            onChange={handleChange}
+            required
+          />
+        </label>
+
+        <label className="admin-input-row">
+          <span>Features (comma separated)</span>
+          <textarea
+            name="featuresText"
+            value={formData.featuresText}
+            onChange={handleChange}
+            rows={3}
+          />
+        </label>
+
+        <button className="admin-submit-btn" type="submit" disabled={submitting}>
+          {submitting ? "Saving..." : "Add Property"}
+        </button>
+
+        {message && <p className="admin-hint">{message}</p>}
+
+        {createdList.length > 0 && (
+          <div className="admin-created">
+            <h3>Recently added</h3>
+            {createdList.map((p) => (
+              <div key={p._id} className="admin-created-item">
+                <strong>{p.title}</strong>
+                <span className="admin-created-sub">
+                  {p.location} - {p.price}
+                </span>
               </div>
-              <p className="admin-post-price">৳ {Number(post.price).toLocaleString()}</p>
-            </div>
-
-            <p className="admin-post-description">{post.description}</p>
-
-            <div className="admin-post-grid">
-              <div className="admin-info-box">
-                <span>Land Type</span>
-                <strong>{post.landType}</strong>
-              </div>
-              <div className="admin-info-box">
-                <span>Size</span>
-                <strong>{post.landSizeSqft} sqft</strong>
-              </div>
-              <div className="admin-info-box">
-                <span>Ownership</span>
-                <strong>{post.ownershipType || "Not specified"}</strong>
-              </div>
-              <div className="admin-info-box">
-                <span>Road Access</span>
-                <strong>{post.roadAccess || "Not specified"}</strong>
-              </div>
-            </div>
-
-            <div className="admin-section">
-              <h4>Location</h4>
-              <p>
-                {post.location.address}, {post.location.upazila}, {post.location.district},{" "}
-                {post.location.division}
-              </p>
-            </div>
-
-            {post.nearbyLandmark && (
-              <div className="admin-section">
-                <h4>Nearby Landmark</h4>
-                <p>{post.nearbyLandmark}</p>
-              </div>
-            )}
-
-            <div className="admin-seller-box">
-              <h4>Seller Information</h4>
-              <p>
-                <strong>Name:</strong> {post.sellerFirstName} {post.sellerLastName}
-              </p>
-              <p>
-                <strong>Email:</strong> {post.sellerEmail}
-              </p>
-              <p>
-                <strong>Phone:</strong> {post.sellerPhone}
-              </p>
-              <p>
-                <strong>Posted:</strong> {new Date(post.createdAt).toLocaleString()}
-              </p>
-            </div>
-
-            <button
-              className="approve-post-btn"
-              onClick={() => handleApprove(post._id)}
-            >
-              Approve Post
-            </button>
+            ))}
           </div>
-        ))}
-      </div>
+        )}
+      </form>
     </div>
   );
 }

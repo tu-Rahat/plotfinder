@@ -1,39 +1,135 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+
+const API_BASE_URL = "http://localhost:5000";
+const maxRating = 5;
+const ratingKeys = [
+  "location",
+  "nearbyConstructions",
+  "dailyAccessibilities",
+  "roadHealth",
+  "crimeRate",
+];
+const defaultFormRatings = {
+  location: 5,
+  nearbyConstructions: 5,
+  dailyAccessibilities: 5,
+  roadHealth: 5,
+  crimeRate: 5,
+};
+
 function Home() {
-  const featuredProperties = [
-    {
-      id: 1,
-      title: "Prime Residential Lot - Mountain View",
-      location: "Boulder, Colorado",
-      price: "$125,000",
-      acres: "2.5 acres",
-      tag: "Residential",
-      image:
-        "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=900&q=80",
-      features: ["Mountain View", "Utilities Available", "+2 more"],
-    },
-    {
-      id: 2,
-      title: "Expansive Farmland - Agricultural Opportunity",
-      location: "Lancaster County, Pennsylvania",
-      price: "$450,000",
-      acres: "50 acres",
-      tag: "Agricultural",
-      image:
-        "https://images.unsplash.com/photo-1461354464878-ad92f492a5a0?auto=format&fit=crop&w=900&q=80",
-      features: ["Irrigation", "Barn Included", "+2 more"],
-    },
-    {
-      id: 3,
-      title: "Waterfront Property - Private Lake Access",
-      location: "Lake Tahoe, Nevada",
-      price: "$350,000",
-      acres: "3 acres",
-      tag: "Recreational",
-      image:
-        "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80",
-      features: ["Lake Access", "Private Beach", "+2 more"],
-    },
-  ];
+  const [properties, setProperties] = useState([]);
+  const [isLoadingProperties, setIsLoadingProperties] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [ratingsForm, setRatingsForm] = useState({});
+  const [submitMessageById, setSubmitMessageById] = useState({});
+  const [submittingById, setSubmittingById] = useState({});
+
+  const token = useMemo(() => localStorage.getItem("token"), []);
+
+  const ratingLabels = {
+    location: "Location",
+    nearbyConstructions: "Nearby Constructions",
+    dailyAccessibilities: "Daily Accessibilities",
+    roadHealth: "Road Health",
+    crimeRate: "Crime Rate",
+  };
+
+  const fetchProperties = async () => {
+    try {
+      setIsLoadingProperties(true);
+      setLoadError("");
+
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await fetch(`${API_BASE_URL}/api/properties`, { headers });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to load properties");
+      }
+
+      setProperties(data.properties || []);
+
+      const nextForm = {};
+      (data.properties || []).forEach((property) => {
+        nextForm[property._id] = property.userRatings
+          ? { ...property.userRatings }
+          : { ...defaultFormRatings };
+      });
+      setRatingsForm(nextForm);
+    } catch (error) {
+      setLoadError(error.message || "Unable to load properties");
+    } finally {
+      setIsLoadingProperties(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProperties();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleRatingChange = (propertyId, key, value) => {
+    setRatingsForm((prev) => ({
+      ...prev,
+      [propertyId]: {
+        ...(prev[propertyId] || defaultFormRatings),
+        [key]: Number(value),
+      },
+    }));
+  };
+
+  const handleRateSubmit = async (propertyId) => {
+    if (!token) {
+      setSubmitMessageById((prev) => ({
+        ...prev,
+        [propertyId]: "Please login to submit your rating.",
+      }));
+      return;
+    }
+
+    const ratings = ratingsForm[propertyId];
+    if (!ratings) {
+      return;
+    }
+
+    try {
+      setSubmittingById((prev) => ({ ...prev, [propertyId]: true }));
+      setSubmitMessageById((prev) => ({ ...prev, [propertyId]: "" }));
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/properties/${propertyId}/rate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ ratings }),
+        }
+      );
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to submit rating");
+      }
+
+      setSubmitMessageById((prev) => ({
+        ...prev,
+        [propertyId]: "Rating saved successfully.",
+      }));
+
+      await fetchProperties();
+    } catch (error) {
+      setSubmitMessageById((prev) => ({
+        ...prev,
+        [propertyId]: error.message || "Failed to submit rating",
+      }));
+    } finally {
+      setSubmittingById((prev) => ({ ...prev, [propertyId]: false }));
+    }
+  };
 
   return (
     <div className="home">
@@ -90,9 +186,24 @@ function Home() {
           <button className="view-all-btn">View All</button>
         </div>
 
-        <div className="property-grid">
-          {featuredProperties.map((property) => (
-            <div className="property-card" key={property.id}>
+        {isLoadingProperties && (
+          <p className="property-feedback">Loading properties...</p>
+        )}
+        {!isLoadingProperties && loadError && (
+          <p className="property-feedback property-feedback-error">{loadError}</p>
+        )}
+
+        {!isLoadingProperties && !loadError && (
+          <>
+            {properties.length === 0 && (
+              <p className="property-feedback">
+                No properties found yet. Add properties from backend to enable
+                ratings.
+              </p>
+            )}
+            <div className="property-grid">
+              {properties.map((property) => (
+              <div className="property-card" key={property._id}>
               <div className="property-image-wrapper">
                 <img
                   src={property.image}
@@ -111,17 +222,78 @@ function Home() {
                   <span className="property-acres">{property.acres}</span>
                 </div>
 
+                <div className="property-overall-rating">
+                  <span className="rating-stars">⭐</span>
+                  <span className="rating-value">
+                    {property.overallRating?.toFixed(1) || "0.0"}/{maxRating}
+                  </span>
+                  <span className="rating-text">
+                    Overall Property Score ({property.totalRatings || 0} reviews)
+                  </span>
+                </div>
+
+                <div className="property-rating-breakdown">
+                  {ratingKeys.map((key) => (
+                    <div key={key} className="rating-row">
+                      <span className="rating-label">{ratingLabels[key]}</span>
+                      <span className="rating-row-value">
+                        {(property.averageRatings?.[key] || 0).toFixed(1)}/{maxRating}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="rating-form">
+                  <h4>Rate this property</h4>
+                  {ratingKeys.map((key) => (
+                    <label key={key} className="rating-input-row">
+                      <span>{ratingLabels[key]}</span>
+                      <select
+                        value={ratingsForm[property._id]?.[key] || 5}
+                        onChange={(event) =>
+                          handleRatingChange(property._id, key, event.target.value)
+                        }
+                      >
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                        <option value={4}>4</option>
+                        <option value={5}>5</option>
+                      </select>
+                    </label>
+                  ))}
+
+                  <button
+                    className="rate-submit-btn"
+                    onClick={() => handleRateSubmit(property._id)}
+                    disabled={Boolean(submittingById[property._id])}
+                  >
+                    {submittingById[property._id] ? "Saving..." : "Submit Rating"}
+                  </button>
+
+                  {!token && (
+                    <p className="rate-hint">
+                      <Link to="/login">Login</Link> to submit your ratings.
+                    </p>
+                  )}
+                  {submitMessageById[property._id] && (
+                    <p className="rate-hint">{submitMessageById[property._id]}</p>
+                  )}
+                </div>
+
                 <div className="property-features">
-                  {property.features.map((feature, index) => (
+                  {(property.features || []).map((feature, index) => (
                     <span key={index} className="feature-pill">
                       {feature}
                     </span>
                   ))}
                 </div>
               </div>
+              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </section>
 
       <section className="stats-section">

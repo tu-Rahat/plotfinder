@@ -28,6 +28,8 @@ app.get("/", (req, res) => {
   res.send("API is running");
 });
 
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/properties", require("./routes/propertyRoutes"));
 
 
 const PORT = process.env.PORT || 5000;
