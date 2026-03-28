@@ -30,6 +30,8 @@ function UserDashboard() {
   const [loadingPosts, setLoadingPosts] = useState(true);
   const [loadingRequests, setLoadingRequests] = useState(true);
   const [loadingIncomingRequests, setLoadingIncomingRequests] = useState(true);
+  const [myShortlist, setMyShortlist] = useState([]);
+  const [loadingShortlist, setLoadingShortlist] = useState(true);
 
   const fetchMyPosts = async () => {
     try {
@@ -54,6 +56,58 @@ function UserDashboard() {
       setLoadingPosts(false);
     }
   };
+
+  const fetchMyShortlist = async () => {
+  try {
+    setLoadingShortlist(true);
+
+    const response = await fetch("http://localhost:5000/api/shortlist/my-shortlist", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to fetch shortlist");
+    }
+
+    setMyShortlist(data);
+  } catch (error) {
+    setErrorMessage(error.message);
+  } finally {
+    setLoadingShortlist(false);
+  }
+};
+
+  const handleRemoveFromShortlist = async (landId) => {
+  try {
+    setMessage("");
+    setErrorMessage("");
+
+    const response = await fetch(`http://localhost:5000/api/shortlist/${landId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to remove from shortlist");
+    }
+
+    setMyShortlist((prev) =>
+      prev.filter((item) => item.landId?._id !== landId)
+    );
+
+    setMessage(data.message);
+  } catch (error) {
+    setErrorMessage(error.message);
+  }
+};
 
   const fetchMyBuyRequests = async () => {
     try {
@@ -144,6 +198,7 @@ const handleUpdateRequestStatus = async (requestId, status) => {
     fetchMyPosts();
     fetchMyBuyRequests();
     fetchIncomingRequests();
+    fetchMyShortlist();
   }, []);
 
   const handleChange = (e) => {
@@ -558,6 +613,71 @@ const handleUpdateRequestStatus = async (requestId, status) => {
     ))}
   </div>
 </div>
+<div className="my-posts-section">
+  <div className="section-heading">
+    <h2>My Shortlisted Lands</h2>
+    <p>View and manage the lands you saved for later.</p>
+  </div>
+
+  {loadingShortlist && (
+    <p className="dashboard-info">Loading shortlisted lands...</p>
+  )}
+
+  {!loadingShortlist && myShortlist.length === 0 && (
+    <p className="dashboard-info">You have not shortlisted any lands yet.</p>
+  )}
+
+  <div className="my-posts-grid">
+    {myShortlist.map((item) => {
+      const land = item.landId;
+      if (!land) return null;
+
+      return (
+        <div className="my-post-card" key={item._id}>
+          <div className="my-post-top">
+            <div>
+              <span className="status-badge status-approved">Shortlisted</span>
+              <h3>{land.title}</h3>
+            </div>
+            <p className="post-price">৳ {Number(land.price).toLocaleString()}</p>
+          </div>
+
+          <p className="post-description">
+            {land.description?.slice(0, 120)}...
+          </p>
+
+          <div className="post-meta">
+            <p><strong>Type:</strong> {land.landType}</p>
+            <p><strong>Size:</strong> {land.landSizeSqft} sqft</p>
+            <p>
+              <strong>Location:</strong> {land.location?.district}, {land.location?.division}
+            </p>
+          </div>
+
+          <div className="request-action-buttons">
+            <button
+              type="button"
+              className="review-btn"
+              onClick={() => window.location.href = `/lands/${land._id}`}
+            >
+              View Details
+            </button>
+
+            <button
+              type="button"
+              className="reject-btn"
+              onClick={() => handleRemoveFromShortlist(land._id)}
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</div>
+
+
     </div>
   );
 }
