@@ -1,0 +1,344 @@
+.dashboard-page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 48px 24px 70px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+
+.status-under_review {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.dashboard-badge {
+  display: inline-block;
+  background: #dcfce7;
+  color: #15803d;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.dashboard-header h1 {
+  font-size: 40px;
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.dashboard-header p {
+  color: #4b5563;
+  font-size: 17px;
+  line-height: 1.7;
+  max-width: 760px;
+}
+
+.dashboard-user-card {
+  min-width: 280px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-user-card h3 {
+  margin-bottom: 12px;
+  color: #111827;
+}
+
+.dashboard-user-card p {
+  color: #4b5563;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.sell-form-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+  margin-bottom: 40px;
+}
+
+.form-section + .form-section {
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px solid #eef2f7;
+}
+
+.form-section h2 {
+  font-size: 24px;
+  color: #111827;
+  margin-bottom: 18px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.full-width {
+  grid-column: span 2;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 13px 14px;
+  font-size: 15px;
+  color: #111827;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.12);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.checkbox-group {
+  justify-content: flex-end;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 36px;
+  font-size: 15px;
+  color: #111827;
+  font-weight: 500;
+}
+
+.checkbox-label input {
+  width: 18px;
+  height: 18px;
+}
+
+.form-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.submit-post-btn {
+  border: none;
+  background: #16a34a;
+  color: #ffffff;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.submit-post-btn:hover {
+  background: #15803d;
+  transform: translateY(-1px);
+}
+
+.success-message {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.error-message {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.my-posts-section {
+  margin-top: 30px;
+}
+
+.section-heading {
+  margin-bottom: 20px;
+}
+
+.section-heading h2 {
+  font-size: 30px;
+  margin-bottom: 8px;
+  color: #111827;
+}
+
+.section-heading p,
+.dashboard-info {
+  color: #6b7280;
+}
+
+.my-posts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.my-post-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.my-post-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.my-post-top h3 {
+  font-size: 22px;
+  margin-top: 10px;
+  color: #111827;
+}
+
+.post-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #15803d;
+  margin: 0;
+}
+
+.post-description {
+  color: #4b5563;
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+
+.post-meta p {
+  margin-bottom: 8px;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.status-approved {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-accepted {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+@media (max-width: 900px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: span 1;
+  }
+
+  .checkbox-label {
+    margin-top: 0;
+  }
+
+  .my-post-top {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 768px) {
+  .dashboard-header h1 {
+    font-size: 32px;
+  }
+
+  .sell-form-card,
+  .dashboard-user-card,
+  .my-post-card {
+    padding: 18px;
+  }
+
+  .form-actions {
+    align-items: stretch;
+  }
+
+  .submit-post-btn {
+    width: 100%;
+  }
+}
+.request-action-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.request-action-buttons button {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.request-action-buttons button:nth-child(1) {
+  background: #dbeafe;
+}
+
+.request-action-buttons button:nth-child(2) {
+  background: #dcfce7;
+}
+
+.request-action-buttons button:nth-child(3) {
+  background: #fee2e2;
+}

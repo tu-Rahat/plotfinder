@@ -8,8 +8,10 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
 import UserDashboard from "./pages/UserDashboard";
+import BrowseLands from "./pages/BrowseLands";
+import LandDetails from "./pages/LandDetails";
 
-// ✅ import new routes
+// 
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import "./App.css";
@@ -21,7 +23,8 @@ function App() {
 
       <Routes>
         <Route path="/" element={<Home />} />
-
+        <Route path="/lands" element={<BrowseLands />} />
+        <Route path="/lands/:id" element={<LandDetails />} />
         {/* ✅ Public routes */}
         <Route
           path="/login"
