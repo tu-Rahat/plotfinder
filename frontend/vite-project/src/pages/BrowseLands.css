@@ -135,3 +135,53 @@
     grid-template-columns: 1fr;
   }
 }
+
+.browse-success {
+  text-align: center;
+  font-size: 16px;
+  margin: 20px 0;
+  color: #15803d;
+  font-weight: 600;
+}
+
+.land-card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.view-btn,
+.shortlist-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.view-btn {
+  background: #16a34a;
+  color: #ffffff;
+}
+
+.view-btn:hover {
+  background: #15803d;
+}
+
+.shortlist-btn {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.shortlist-btn:hover {
+  background: #d1d5db;
+}
+
+.shortlist-btn.shortlisted {
+  background: #dcfce7;
+  color: #15803d;
+  cursor: default;
+}
