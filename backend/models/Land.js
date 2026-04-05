@@ -59,6 +59,9 @@ const landSchema = new mongoose.Schema(
       district: { type: String, required: true, trim: true },
       upazila: { type: String, required: true, trim: true },
       address: { type: String, required: true, trim: true },
+      latitude: { type: Number, default: null },
+      longitude: { type: Number, default: null },
+      formattedAddress: { type: String, default: "", trim: true },
     },
 
     ownershipType: {

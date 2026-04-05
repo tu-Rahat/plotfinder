@@ -20,6 +20,9 @@ const createLandPost = async (req, res) => {
       roadAccess,
       nearbyLandmark,
       priceNegotiable,
+      latitude,
+      longitude,
+      formattedAddress,
     } = req.body;
 
     const sellerId = req.user?.id || req.user?.userId || req.user?._id;
@@ -65,6 +68,9 @@ const createLandPost = async (req, res) => {
         district,
         upazila,
         address,
+        latitude: latitude ?? null,
+        longitude: longitude ?? null,
+        formattedAddress: formattedAddress || "",
       },
       ownershipType,
       roadAccess,
@@ -241,6 +247,9 @@ const updateLandPostByAdmin = async (req, res) => {
       roadAccess,
       nearbyLandmark,
       priceNegotiable,
+      latitude,
+      longitude,
+      formattedAddress,
     } = req.body;
 
     const land = await Land.findById(id);
@@ -277,6 +286,9 @@ const updateLandPostByAdmin = async (req, res) => {
       district,
       upazila,
       address,
+      latitude: latitude ?? land.location?.latitude ?? null,
+      longitude: longitude ?? land.location?.longitude ?? null,
+      formattedAddress: formattedAddress ?? land.location?.formattedAddress ?? "",
     };
     land.ownershipType = ownershipType || "";
     land.roadAccess = roadAccess || "";
@@ -342,6 +354,9 @@ const updateMyLandPost = async (req, res) => {
       nearbyLandmark,
       sellerPhone,
       priceNegotiable,
+      latitude,
+      longitude,
+      formattedAddress,
     } = req.body;
 
     const land = await Land.findOne({ _id: id, sellerId });
@@ -379,6 +394,9 @@ const updateMyLandPost = async (req, res) => {
       district,
       upazila,
       address,
+      latitude: latitude ?? land.location?.latitude ?? null,
+      longitude: longitude ?? land.location?.longitude ?? null,
+      formattedAddress: formattedAddress ?? land.location?.formattedAddress ?? "",
     };
     land.ownershipType = ownershipType || "";
     land.roadAccess = roadAccess || "";
