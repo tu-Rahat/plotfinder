@@ -1,6 +1,19 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import "./LandDetails.css";
+
+
+// Fix for default marker icons in Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
 
 function LandDetails() {
   const { id } = useParams();
@@ -22,6 +35,10 @@ function LandDetails() {
     preferredContactMethod: "phone",
     message: "",
   });
+
+  const latitude = land?.location?.latitude ? Number(land.location.latitude) : null;
+  const longitude = land?.location?.longitude ? Number(land.location.longitude) : null;
+  const hasMapLocation = latitude && longitude;
 
   useEffect(() => {
     const fetchLand = async () => {
@@ -138,12 +155,45 @@ function LandDetails() {
           </div>
 
           <div className="land-details-section">
-            <h3>Location</h3>
-            <p>
-              {land.location.address}, {land.location.upazila}, {land.location.district},{" "}
-              {land.location.division}
-            </p>
-          </div>
+  <h3>Location</h3>
+  <p>
+    {land.location.address}, {land.location.upazila}, {land.location.district},{" "}
+    {land.location.division}
+  </p>
+
+  {land.location.formattedAddress && (
+    <p className="formatted-location-text">
+      <strong>Map Address:</strong> {land.location.formattedAddress}
+    </p>
+  )}
+
+  {hasMapLocation ? (
+    <div className="land-map-wrapper">
+      <MapContainer
+        center={[latitude, longitude]}
+        zoom={15}
+        scrollWheelZoom={false}
+        className="land-details-map"
+      >
+        <TileLayer
+          attribution='&copy; OpenStreetMap contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={[latitude, longitude]}>
+          <Popup>
+            <strong>{land.title}</strong>
+            <br />
+            {land.location.formattedAddress || land.location.address}
+          </Popup>
+        </Marker>
+      </MapContainer>
+    </div>
+  ) : (
+    <p className="map-unavailable-text">
+      Map location is not available for this land post.
+    </p>
+  )}
+</div>
 
           {land.nearbyLandmark && (
             <div className="land-details-section">

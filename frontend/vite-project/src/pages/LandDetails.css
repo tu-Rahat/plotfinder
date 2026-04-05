@@ -204,3 +204,24 @@
     padding: 20px;
   }
 }
+.formatted-location-text {
+  margin-top: 8px;
+}
+
+.land-map-wrapper {
+  margin-top: 18px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.land-details-map {
+  width: 100%;
+  height: 320px;
+}
+
+.map-unavailable-text {
+  margin-top: 12px;
+  color: #6b7280;
+  font-style: italic;
+}

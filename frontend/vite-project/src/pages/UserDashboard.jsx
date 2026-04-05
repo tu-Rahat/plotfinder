@@ -20,6 +20,9 @@ function UserDashboard() {
     nearbyLandmark: "",
     sellerPhone: storedUser?.phone || "",
     priceNegotiable: false,
+    latitude: "",
+    longitude: "",
+    formattedAddress: "",
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -34,10 +37,19 @@ function UserDashboard() {
   const [loadingIncomingRequests, setLoadingIncomingRequests] = useState(true);
   const [myShortlist, setMyShortlist] = useState([]);
   const [loadingShortlist, setLoadingShortlist] = useState(true);
-
   const [editingPost, setEditingPost] = useState(null);
   const [editFormData, setEditFormData] = useState(initialFormData);
   const [submittingEdit, setSubmittingEdit] = useState(false);
+  const [locationQuery, setLocationQuery] = useState("");
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationResults, setLocationResults] = useState([]);
+  const [locationSearchError, setLocationSearchError] = useState("");
+  const [editLocationQuery, setEditLocationQuery] = useState("");
+  const [editLocationLoading, setEditLocationLoading] = useState(false);
+  const [editLocationResults, setEditLocationResults] = useState([]);
+  const [editLocationSearchError, setEditLocationSearchError] = useState("");
+
+
 
   const fetchMyPosts = async () => {
     try {
@@ -266,10 +278,20 @@ function UserDashboard() {
       nearbyLandmark: post.nearbyLandmark || "",
       sellerPhone: post.sellerPhone || storedUser?.phone || "",
       priceNegotiable: post.priceNegotiable || false,
+      latitude: post.location?.latitude || "",
+      longitude: post.location?.longitude || "",
+      formattedAddress: post.location?.formattedAddress || "",
+
     });
+    setEditLocationQuery(post.location?.formattedAddress || post.location?.address || "");
+    setEditLocationResults([]);
+    setEditLocationSearchError("");
   };
 
   const closeEditModal = () => {
+    setEditLocationQuery("");
+    setEditLocationResults([]);
+    setEditLocationSearchError("");
     setEditingPost(null);
     setEditFormData(initialFormData);
   };
@@ -348,6 +370,80 @@ function UserDashboard() {
       setErrorMessage(error.message);
     }
   };
+
+  const handleLocationSearch = async () => {
+  setLocationSearchError("");
+  setLocationResults([]);
+
+  if (!locationQuery.trim()) {
+    setLocationSearchError("Please enter a location to search.");
+    return;
+  }
+
+  try {
+    setLocationLoading(true);
+
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(
+        locationQuery
+      )}&limit=5`
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error("Failed to search location");
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+      setLocationSearchError("No locations found. Try a more specific search.");
+      return;
+    }
+
+    setLocationResults(data);
+  } catch (error) {
+    setLocationSearchError(error.message || "Failed to search location");
+  } finally {
+    setLocationLoading(false);
+  }
+  };
+
+  const handleEditLocationSearch = async () => {
+  setEditLocationSearchError("");
+  setEditLocationResults([]);
+
+  if (!editLocationQuery.trim()) {
+    setEditLocationSearchError("Please enter a location to search.");
+    return;
+  }
+
+  try {
+    setEditLocationLoading(true);
+
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(
+        editLocationQuery
+      )}&limit=5`
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error("Failed to search location");
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+      setEditLocationSearchError("No locations found. Try a more specific search.");
+      return;
+    }
+
+    setEditLocationResults(data);
+  } catch (error) {
+    setEditLocationSearchError(error.message || "Failed to search location");
+  } finally {
+    setEditLocationLoading(false);
+  }
+};
 
   return (
     <div className="dashboard-page">
@@ -451,6 +547,73 @@ function UserDashboard() {
         <div className="form-section">
           <h2>Location Details</h2>
           <div className="form-grid">
+              <div className="form-group full-width">
+      <label>Search Location (External API)</label>
+      <div className="location-search-row">
+        <input
+          type="text"
+          placeholder="Search place, area, or full address"
+          value={locationQuery}
+          onChange={(e) => setLocationQuery(e.target.value)}
+        />
+        <button
+          type="button"
+          className="location-search-btn"
+          onClick={handleLocationSearch}
+          disabled={locationLoading}
+        >
+          {locationLoading ? "Searching..." : "Search"}
+        </button>
+      </div>
+
+      {locationSearchError && (
+        <p className="error-message location-search-message">{locationSearchError}</p>
+      )}
+
+      {locationResults.length > 0 && (
+        <div className="location-results-list">
+          {locationResults.map((item) => (
+            <button
+              key={item.place_id}
+              type="button"
+              className="location-result-item"
+              onClick={() => {
+                setFormData((prev) => ({
+                  ...prev,
+                  address: item.display_name || prev.address,
+                  latitude: item.lat || "",
+                  longitude: item.lon || "",
+                  formattedAddress: item.display_name || "",
+                }));
+                setLocationQuery(item.display_name || "");
+                setLocationResults([]);
+                setLocationSearchError("");
+              }}
+            >
+              {item.display_name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+    {formData.latitude && formData.longitude && (
+  <div className="form-group full-width">
+    <div className="selected-location-preview">
+      <h4>Selected Map Location</h4>
+      <p>
+        <strong>Address:</strong>{" "}
+        {formData.formattedAddress || formData.address}
+      </p>
+      <p>
+        <strong>Latitude:</strong> {formData.latitude}
+      </p>
+      <p>
+        <strong>Longitude:</strong> {formData.longitude}
+      </p>
+    </div>
+  </div>
+)}
+
             <div className="form-group">
               <label>Division</label>
               <input
@@ -875,6 +1038,75 @@ function UserDashboard() {
               <div className="form-section">
                 <h2>Location Details</h2>
                 <div className="form-grid">
+                  <div className="form-group full-width">
+  <label>Search Location (External API)</label>
+  <div className="location-search-row">
+    <input
+      type="text"
+      placeholder="Search place, area, or full address"
+      value={editLocationQuery}
+      onChange={(e) => setEditLocationQuery(e.target.value)}
+    />
+    <button
+      type="button"
+      className="location-search-btn"
+      onClick={handleEditLocationSearch}
+      disabled={editLocationLoading}
+    >
+      {editLocationLoading ? "Searching..." : "Search"}
+    </button>
+  </div>
+
+  {editLocationSearchError && (
+    <p className="error-message location-search-message">
+      {editLocationSearchError}
+    </p>
+  )}
+
+  {editLocationResults.length > 0 && (
+    <div className="location-results-list">
+      {editLocationResults.map((item) => (
+        <button
+          key={item.place_id}
+          type="button"
+          className="location-result-item"
+          onClick={() => {
+            setEditFormData((prev) => ({
+              ...prev,
+              address: item.display_name || prev.address,
+              latitude: item.lat || "",
+              longitude: item.lon || "",
+              formattedAddress: item.display_name || "",
+            }));
+            setEditLocationQuery(item.display_name || "");
+            setEditLocationResults([]);
+            setEditLocationSearchError("");
+          }}
+        >
+          {item.display_name}
+        </button>
+      ))}
+    </div>
+  )}
+</div>
+
+{editFormData.latitude && editFormData.longitude && (
+  <div className="form-group full-width">
+    <div className="selected-location-preview">
+      <h4>Selected Map Location</h4>
+      <p>
+        <strong>Address:</strong>{" "}
+        {editFormData.formattedAddress || editFormData.address}
+      </p>
+      <p>
+        <strong>Latitude:</strong> {editFormData.latitude}
+      </p>
+      <p>
+        <strong>Longitude:</strong> {editFormData.longitude}
+      </p>
+    </div>
+  </div>
+)}
                   <div className="form-group">
                     <label>Division</label>
                     <input
