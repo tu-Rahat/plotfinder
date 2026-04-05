@@ -5,7 +5,7 @@ function UserDashboard() {
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
 
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     title: "",
     description: "",
     landType: "Residential",
@@ -20,7 +20,9 @@ function UserDashboard() {
     nearbyLandmark: "",
     sellerPhone: storedUser?.phone || "",
     priceNegotiable: false,
-  });
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
 
   const [myPosts, setMyPosts] = useState([]);
   const [myBuyRequests, setMyBuyRequests] = useState([]);
@@ -32,6 +34,10 @@ function UserDashboard() {
   const [loadingIncomingRequests, setLoadingIncomingRequests] = useState(true);
   const [myShortlist, setMyShortlist] = useState([]);
   const [loadingShortlist, setLoadingShortlist] = useState(true);
+
+  const [editingPost, setEditingPost] = useState(null);
+  const [editFormData, setEditFormData] = useState(initialFormData);
+  const [submittingEdit, setSubmittingEdit] = useState(false);
 
   const fetchMyPosts = async () => {
     try {
@@ -58,56 +64,53 @@ function UserDashboard() {
   };
 
   const fetchMyShortlist = async () => {
-  try {
-    setLoadingShortlist(true);
+    try {
+      setLoadingShortlist(true);
 
-    const response = await fetch("http://localhost:5000/api/shortlist/my-shortlist", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      const response = await fetch("http://localhost:5000/api/shortlist/my-shortlist", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to fetch shortlist");
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch shortlist");
+      }
+
+      setMyShortlist(data);
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setLoadingShortlist(false);
     }
-
-    setMyShortlist(data);
-  } catch (error) {
-    setErrorMessage(error.message);
-  } finally {
-    setLoadingShortlist(false);
-  }
-};
+  };
 
   const handleRemoveFromShortlist = async (landId) => {
-  try {
-    setMessage("");
-    setErrorMessage("");
+    try {
+      setMessage("");
+      setErrorMessage("");
 
-    const response = await fetch(`http://localhost:5000/api/shortlist/${landId}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      const response = await fetch(`http://localhost:5000/api/shortlist/${landId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to remove from shortlist");
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to remove from shortlist");
+      }
+
+      setMyShortlist((prev) => prev.filter((item) => item.landId?._id !== landId));
+      setMessage(data.message);
+    } catch (error) {
+      setErrorMessage(error.message);
     }
-
-    setMyShortlist((prev) =>
-      prev.filter((item) => item.landId?._id !== landId)
-    );
-
-    setMessage(data.message);
-  } catch (error) {
-    setErrorMessage(error.message);
-  }
-};
+  };
 
   const fetchMyBuyRequests = async () => {
     try {
@@ -134,65 +137,63 @@ function UserDashboard() {
   };
 
   const fetchIncomingRequests = async () => {
-  try {
-    setLoadingIncomingRequests(true);
+    try {
+      setLoadingIncomingRequests(true);
 
-    const response = await fetch("http://localhost:5000/api/buy-requests/incoming", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to fetch incoming requests");
-    }
-
-    setIncomingRequests(data);
-  } catch (error) {
-    setErrorMessage(error.message);
-  } finally {
-    setLoadingIncomingRequests(false);
-  }
-};
-
-const handleUpdateRequestStatus = async (requestId, status) => {
-  console.log("clicked", requestId, status);
-  try {
-    setMessage("");
-    setErrorMessage("");
-
-    const response = await fetch(
-      `http://localhost:5000/api/buy-requests/${requestId}/status`,
-      {
-        method: "PATCH",
+      const response = await fetch("http://localhost:5000/api/buy-requests/incoming", {
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ status }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch incoming requests");
       }
-    );
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.message || "Failed to update request status");
+      setIncomingRequests(data);
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setLoadingIncomingRequests(false);
     }
+  };
 
-    setIncomingRequests((prev) =>
-      prev.map((request) =>
-        request._id === requestId ? { ...request, status } : request
-      )
-    );
+  const handleUpdateRequestStatus = async (requestId, status) => {
+    try {
+      setMessage("");
+      setErrorMessage("");
 
-    setMessage(data.message);
-  } catch (error) {
-    setErrorMessage(error.message);
-  }
-};
+      const response = await fetch(
+        `http://localhost:5000/api/buy-requests/${requestId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ status }),
+        }
+      );
 
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update request status");
+      }
+
+      setIncomingRequests((prev) =>
+        prev.map((request) =>
+          request._id === requestId ? { ...request, status } : request
+        )
+      );
+
+      setMessage(data.message);
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
 
   useEffect(() => {
     fetchMyPosts();
@@ -241,25 +242,108 @@ const handleUpdateRequestStatus = async (requestId, status) => {
       }
 
       setMessage(data.message);
+      setFormData(initialFormData);
+      fetchMyPosts();
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
 
-      setFormData({
-        title: "",
-        description: "",
-        landType: "Residential",
-        price: "",
-        landSizeSqft: "",
-        division: "",
-        district: "",
-        upazila: "",
-        address: "",
-        ownershipType: "",
-        roadAccess: "",
-        nearbyLandmark: "",
-        sellerPhone: storedUser?.phone || "",
-        priceNegotiable: false,
+  const openEditModal = (post) => {
+    setEditingPost(post);
+    setEditFormData({
+      title: post.title || "",
+      description: post.description || "",
+      landType: post.landType || "Residential",
+      price: post.price || "",
+      landSizeSqft: post.landSizeSqft || "",
+      division: post.location?.division || "",
+      district: post.location?.district || "",
+      upazila: post.location?.upazila || "",
+      address: post.location?.address || "",
+      ownershipType: post.ownershipType || "",
+      roadAccess: post.roadAccess || "",
+      nearbyLandmark: post.nearbyLandmark || "",
+      sellerPhone: post.sellerPhone || storedUser?.phone || "",
+      priceNegotiable: post.priceNegotiable || false,
+    });
+  };
+
+  const closeEditModal = () => {
+    setEditingPost(null);
+    setEditFormData(initialFormData);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    setEditFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setErrorMessage("");
+    setSubmittingEdit(true);
+
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/lands/my-posts/${editingPost._id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            ...editFormData,
+            sellerPhone: editFormData.sellerPhone,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update your land post");
+      }
+
+      setMessage(data.message);
+      closeEditModal();
+      fetchMyPosts();
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setSubmittingEdit(false);
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    setMessage("");
+    setErrorMessage("");
+
+    const confirmed = window.confirm("Are you sure you want to delete this land post?");
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/lands/my-posts/${postId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
-      fetchMyPosts();
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to delete your land post");
+      }
+
+      setMessage(data.message);
+      setMyPosts((prev) => prev.filter((post) => post._id !== postId));
     } catch (error) {
       setErrorMessage(error.message);
     }
@@ -508,6 +592,29 @@ const handleUpdateRequestStatus = async (requestId, status) => {
                     <strong>Approved At:</strong> {new Date(post.approvedAt).toLocaleString()}
                   </p>
                 )}
+                {post.rejectionReason && (
+                  <p>
+                    <strong>Rejection Reason:</strong> {post.rejectionReason}
+                  </p>
+                )}
+              </div>
+
+              <div className="request-action-buttons">
+                <button
+                  type="button"
+                  className="review-btn"
+                  onClick={() => openEditModal(post)}
+                >
+                  Edit
+                </button>
+
+                <button
+                  type="button"
+                  className="reject-btn"
+                  onClick={() => handleDeletePost(post._id)}
+                >
+                  Delete
+                </button>
               </div>
             </div>
           ))}
@@ -566,118 +673,309 @@ const handleUpdateRequestStatus = async (requestId, status) => {
           ))}
         </div>
       </div>
+
       <div className="my-posts-section">
-  <div className="section-heading">
-    <h2>Incoming Requests for My Lands</h2>
-    <p>See buyer interest for your lands</p>
-  </div>
+        <div className="section-heading">
+          <h2>Incoming Requests for My Lands</h2>
+          <p>See buyer interest for your lands</p>
+        </div>
 
-  {loadingIncomingRequests && <p>Loading...</p>}
+        {loadingIncomingRequests && <p>Loading...</p>}
 
-  <div className="my-posts-grid">
-    {incomingRequests.map((request) => (
-      <div className="my-post-card" key={request._id}>
-        <span className={`status-badge status-${request.status}`}>
-          {request.status}
-        </span>
+        <div className="my-posts-grid">
+          {incomingRequests.map((request) => (
+            <div className="my-post-card" key={request._id}>
+              <span className={`status-badge status-${request.status}`}>
+                {request.status}
+              </span>
 
-        <h3>{request.landId?.title}</h3>
+              <h3>{request.landId?.title}</h3>
 
-        <p><strong>Offer:</strong> ৳ {request.offeredPrice}</p>
-        <p><strong>Buyer:</strong> {request.buyerFirstName}</p>
-        <p><strong>Phone:</strong> {request.buyerPhone}</p>
+              <p><strong>Offer:</strong> ৳ {request.offeredPrice}</p>
+              <p><strong>Buyer:</strong> {request.buyerFirstName}</p>
+              <p><strong>Phone:</strong> {request.buyerPhone}</p>
 
-        <div className="request-action-buttons">
-          <button
-            type="button"
-            onClick={() => handleUpdateRequestStatus(request._id, "under_review")}
-          >
-            Review
-          </button>
+              <div className="request-action-buttons">
+                <button
+                  type="button"
+                  onClick={() => handleUpdateRequestStatus(request._id, "under_review")}
+                >
+                  Review
+                </button>
 
-          <button
-            type="button"
-            onClick={() => handleUpdateRequestStatus(request._id, "accepted")}
-          >
-            Accept
-          </button>
+                <button
+                  type="button"
+                  onClick={() => handleUpdateRequestStatus(request._id, "accepted")}
+                >
+                  Accept
+                </button>
 
-          <button
-            type="button"
-            onClick={() => handleUpdateRequestStatus(request._id, "rejected")}
-          >
-            Reject
-          </button>
+                <button
+                  type="button"
+                  onClick={() => handleUpdateRequestStatus(request._id, "rejected")}
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
-    ))}
-  </div>
-</div>
-<div className="my-posts-section">
-  <div className="section-heading">
-    <h2>My Shortlisted Lands</h2>
-    <p>View and manage the lands you saved for later.</p>
-  </div>
 
-  {loadingShortlist && (
-    <p className="dashboard-info">Loading shortlisted lands...</p>
-  )}
+      <div className="my-posts-section">
+        <div className="section-heading">
+          <h2>My Shortlisted Lands</h2>
+          <p>View and manage the lands you saved for later.</p>
+        </div>
 
-  {!loadingShortlist && myShortlist.length === 0 && (
-    <p className="dashboard-info">You have not shortlisted any lands yet.</p>
-  )}
+        {loadingShortlist && (
+          <p className="dashboard-info">Loading shortlisted lands...</p>
+        )}
 
-  <div className="my-posts-grid">
-    {myShortlist.map((item) => {
-      const land = item.landId;
-      if (!land) return null;
+        {!loadingShortlist && myShortlist.length === 0 && (
+          <p className="dashboard-info">You have not shortlisted any lands yet.</p>
+        )}
 
-      return (
-        <div className="my-post-card" key={item._id}>
-          <div className="my-post-top">
-            <div>
-              <span className="status-badge status-approved">Shortlisted</span>
-              <h3>{land.title}</h3>
+        <div className="my-posts-grid">
+          {myShortlist.map((item) => {
+            const land = item.landId;
+            if (!land) return null;
+
+            return (
+              <div className="my-post-card" key={item._id}>
+                <div className="my-post-top">
+                  <div>
+                    <span className="status-badge status-approved">Shortlisted</span>
+                    <h3>{land.title}</h3>
+                  </div>
+                  <p className="post-price">৳ {Number(land.price).toLocaleString()}</p>
+                </div>
+
+                <p className="post-description">
+                  {land.description?.slice(0, 120)}...
+                </p>
+
+                <div className="post-meta">
+                  <p><strong>Type:</strong> {land.landType}</p>
+                  <p><strong>Size:</strong> {land.landSizeSqft} sqft</p>
+                  <p>
+                    <strong>Location:</strong> {land.location?.district}, {land.location?.division}
+                  </p>
+                </div>
+
+                <div className="request-action-buttons">
+                  <button
+                    type="button"
+                    className="review-btn"
+                    onClick={() => (window.location.href = `/lands/${land._id}`)}
+                  >
+                    View Details
+                  </button>
+
+                  <button
+                    type="button"
+                    className="reject-btn"
+                    onClick={() => handleRemoveFromShortlist(land._id)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {editingPost && (
+        <div className="dashboard-modal-overlay">
+          <div className="dashboard-edit-modal">
+            <div className="dashboard-modal-header">
+              <h2>Edit My Land Post</h2>
+              <button type="button" className="dashboard-modal-close" onClick={closeEditModal}>
+                ×
+              </button>
             </div>
-            <p className="post-price">৳ {Number(land.price).toLocaleString()}</p>
-          </div>
 
-          <p className="post-description">
-            {land.description?.slice(0, 120)}...
-          </p>
+            <form className="dashboard-edit-form" onSubmit={handleEditSubmit}>
+              <div className="form-section">
+                <h2>Basic Information</h2>
+                <div className="form-grid">
+                  <div className="form-group full-width">
+                    <label>Land Title</label>
+                    <input
+                      name="title"
+                      value={editFormData.title}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  </div>
 
-          <div className="post-meta">
-            <p><strong>Type:</strong> {land.landType}</p>
-            <p><strong>Size:</strong> {land.landSizeSqft} sqft</p>
-            <p>
-              <strong>Location:</strong> {land.location?.district}, {land.location?.division}
-            </p>
-          </div>
+                  <div className="form-group full-width">
+                    <label>Description</label>
+                    <textarea
+                      name="description"
+                      rows="5"
+                      value={editFormData.description}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  </div>
 
-          <div className="request-action-buttons">
-            <button
-              type="button"
-              className="review-btn"
-              onClick={() => window.location.href = `/lands/${land._id}`}
-            >
-              View Details
-            </button>
+                  <div className="form-group">
+                    <label>Land Type</label>
+                    <select
+                      name="landType"
+                      value={editFormData.landType}
+                      onChange={handleEditChange}
+                    >
+                      <option value="Residential">Residential</option>
+                      <option value="Commercial">Commercial</option>
+                      <option value="Agricultural">Agricultural</option>
+                      <option value="Industrial">Industrial</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
 
-            <button
-              type="button"
-              className="reject-btn"
-              onClick={() => handleRemoveFromShortlist(land._id)}
-            >
-              Remove
-            </button>
+                  <div className="form-group">
+                    <label>Price</label>
+                    <input
+                      type="number"
+                      name="price"
+                      value={editFormData.price}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Land Size (sqft)</label>
+                    <input
+                      type="number"
+                      name="landSizeSqft"
+                      value={editFormData.landSizeSqft}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group checkbox-group">
+                    <label className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        name="priceNegotiable"
+                        checked={editFormData.priceNegotiable}
+                        onChange={handleEditChange}
+                      />
+                      Price negotiable
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <h2>Location Details</h2>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Division</label>
+                    <input
+                      name="division"
+                      value={editFormData.division}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>District</label>
+                    <input
+                      name="district"
+                      value={editFormData.district}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Upazila</label>
+                    <input
+                      name="upazila"
+                      value={editFormData.upazila}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group full-width">
+                    <label>Full Address</label>
+                    <input
+                      name="address"
+                      value={editFormData.address}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-section">
+                <h2>Extra Details</h2>
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Ownership Type</label>
+                    <input
+                      name="ownershipType"
+                      value={editFormData.ownershipType}
+                      onChange={handleEditChange}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Road Access</label>
+                    <input
+                      name="roadAccess"
+                      value={editFormData.roadAccess}
+                      onChange={handleEditChange}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Nearby Landmark</label>
+                    <input
+                      name="nearbyLandmark"
+                      value={editFormData.nearbyLandmark}
+                      onChange={handleEditChange}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Phone Number</label>
+                    <input
+                      name="sellerPhone"
+                      value={editFormData.sellerPhone}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="dashboard-edit-actions">
+                <button type="submit" className="submit-post-btn" disabled={submittingEdit}>
+                  {submittingEdit ? "Saving..." : "Save Changes"}
+                </button>
+
+                <button
+                  type="button"
+                  className="cancel-edit-btn"
+                  onClick={closeEditModal}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      );
-    })}
-  </div>
-</div>
-
-
+      )}
     </div>
   );
 }

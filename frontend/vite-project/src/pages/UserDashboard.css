@@ -342,3 +342,108 @@
 .request-action-buttons button:nth-child(3) {
   background: #fee2e2;
 }
+.dashboard-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 999;
+}
+
+.dashboard-edit-modal {
+  width: 100%;
+  max-width: 820px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.22);
+}
+
+.dashboard-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.dashboard-modal-header h2 {
+  margin: 0;
+  color: #111827;
+}
+
+.dashboard-modal-close {
+  border: none;
+  background: transparent;
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  color: #374151;
+}
+
+.dashboard-edit-form {
+  display: grid;
+  gap: 18px;
+}
+
+.dashboard-edit-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.cancel-edit-btn {
+  border: none;
+  background: #e5e7eb;
+  color: #111827;
+  padding: 14px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.cancel-edit-btn:hover {
+  background: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.review-btn {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.review-btn:hover {
+  background: #bfdbfe;
+}
+
+.reject-btn {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.reject-btn:hover {
+  background: #fecaca;
+}
+
+@media (max-width: 768px) {
+  .dashboard-edit-modal {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .dashboard-edit-actions {
+    flex-direction: column;
+  }
+
+  .cancel-edit-btn,
+  .submit-post-btn {
+    width: 100%;
+  }
+}

@@ -322,6 +322,110 @@ const deleteLandPostByAdmin = async (req, res) => {
   }
 };
 
+const updateMyLandPost = async (req, res) => {
+  try {
+    const sellerId = req.user.id || req.user.userId || req.user._id;
+    const { id } = req.params;
+
+    const {
+      title,
+      description,
+      landType,
+      price,
+      landSizeSqft,
+      division,
+      district,
+      upazila,
+      address,
+      ownershipType,
+      roadAccess,
+      nearbyLandmark,
+      sellerPhone,
+      priceNegotiable,
+    } = req.body;
+
+    const land = await Land.findOne({ _id: id, sellerId });
+
+    if (!land) {
+      return res.status(404).json({
+        message: "Land post not found or you are not allowed to edit it",
+      });
+    }
+
+    if (
+      !title ||
+      !description ||
+      !landType ||
+      !price ||
+      !landSizeSqft ||
+      !division ||
+      !district ||
+      !upazila ||
+      !address ||
+      !sellerPhone
+    ) {
+      return res.status(400).json({
+        message: "Please fill all required fields",
+      });
+    }
+
+    land.title = title;
+    land.description = description;
+    land.landType = landType;
+    land.price = price;
+    land.landSizeSqft = landSizeSqft;
+    land.location = {
+      division,
+      district,
+      upazila,
+      address,
+    };
+    land.ownershipType = ownershipType || "";
+    land.roadAccess = roadAccess || "";
+    land.nearbyLandmark = nearbyLandmark || "";
+    land.sellerPhone = sellerPhone;
+    land.priceNegotiable = priceNegotiable || false;
+
+    await land.save();
+
+    return res.status(200).json({
+      message: "Your land post updated successfully",
+      land,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while updating your land post",
+      error: error.message,
+    });
+  }
+};
+
+const deleteMyLandPost = async (req, res) => {
+  try {
+    const sellerId = req.user.id || req.user.userId || req.user._id;
+    const { id } = req.params;
+
+    const land = await Land.findOne({ _id: id, sellerId });
+
+    if (!land) {
+      return res.status(404).json({
+        message: "Land post not found or you are not allowed to delete it",
+      });
+    }
+
+    await Land.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      message: "Your land post deleted successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while deleting your land post",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createLandPost,
   getApprovedLands,
@@ -332,5 +436,7 @@ module.exports = {
   rejectLandPost,
   updateLandPostByAdmin,
   deleteLandPostByAdmin,
+  updateMyLandPost,
+  deleteMyLandPost,
   getSingleLand,
 };

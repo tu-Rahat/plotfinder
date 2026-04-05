@@ -11,6 +11,8 @@ const {
   rejectLandPost,
   updateLandPostByAdmin,
   deleteLandPostByAdmin,
+  updateMyLandPost,
+  deleteMyLandPost,
   getSingleLand,
 } = require("../controllers/landController");
 
@@ -19,7 +21,10 @@ const { adminOnly, userOnly } = require("../middleware/roleMiddleware");
 
 router.get("/", getApprovedLands);
 router.post("/", protect, userOnly, createLandPost);
+
 router.get("/my-posts", protect, userOnly, getMyLandPosts);
+router.put("/my-posts/:id", protect, userOnly, updateMyLandPost);
+router.delete("/my-posts/:id", protect, userOnly, deleteMyLandPost);
 
 router.get("/pending", protect, adminOnly, getPendingLands);
 router.get("/admin/all", protect, adminOnly, getAllLandsForAdmin);
