@@ -215,3 +215,48 @@
     padding: 18px;
   }
 }
+.admin-section-wrapper {
+  margin-top: 40px;
+}
+
+.admin-section-title {
+  margin-bottom: 18px;
+  font-size: 24px;
+  color: #1f2937;
+}
+
+.admin-action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.reject-post-btn,
+.delete-post-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.reject-post-btn {
+  background: #f59e0b;
+  color: white;
+}
+
+.reject-post-btn:hover {
+  background: #d97706;
+}
+
+.delete-post-btn {
+  background: #dc2626;
+  color: white;
+}
+
+.delete-post-btn:hover {
+  background: #b91c1c;
+}
