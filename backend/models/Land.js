@@ -94,6 +94,20 @@ const landSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    rejectedAt: {
+      type: Date,
+      default: null,
+    },
+    rejectedBy: {
+      type: String,
+      default: "",
+    },
+    rejectionReason: {
+      type: String,
+      default: "",
+      trim: true,
+    },
   },
   { timestamps: true }
 );

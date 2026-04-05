@@ -185,3 +185,135 @@
   color: #15803d;
   cursor: default;
 }
+.admin-section-wrapper {
+  margin-top: 40px;
+}
+
+.admin-section-title {
+  margin-bottom: 18px;
+  font-size: 24px;
+  color: #1f2937;
+}
+
+.admin-action-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.reject-post-btn,
+.delete-post-btn,
+.edit-post-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.reject-post-btn {
+  background: #f59e0b;
+  color: white;
+}
+
+.reject-post-btn:hover {
+  background: #d97706;
+}
+
+.edit-post-btn {
+  background: #2563eb;
+  color: white;
+}
+
+.edit-post-btn:hover {
+  background: #1d4ed8;
+}
+
+.delete-post-btn {
+  background: #dc2626;
+  color: white;
+}
+
+.delete-post-btn:hover {
+  background: #b91c1c;
+}
+
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 999;
+}
+
+.admin-edit-modal {
+  width: 100%;
+  max-width: 760px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.2);
+}
+
+.admin-edit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.admin-edit-modal-header h2 {
+  margin: 0;
+  color: #111827;
+}
+
+.admin-close-btn {
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  cursor: pointer;
+  color: #374151;
+}
+
+.admin-edit-form {
+  display: grid;
+  gap: 14px;
+}
+
+.admin-edit-form input,
+.admin-edit-form textarea {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+}
+
+.admin-edit-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.admin-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.admin-edit-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
