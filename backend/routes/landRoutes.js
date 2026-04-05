@@ -9,6 +9,7 @@ const {
   getAllLandsForAdmin,
   approveLandPost,
   rejectLandPost,
+  updateLandPostByAdmin,
   deleteLandPostByAdmin,
   getSingleLand,
 } = require("../controllers/landController");
@@ -24,6 +25,7 @@ router.get("/pending", protect, adminOnly, getPendingLands);
 router.get("/admin/all", protect, adminOnly, getAllLandsForAdmin);
 router.patch("/:id/approve", protect, adminOnly, approveLandPost);
 router.patch("/:id/reject", protect, adminOnly, rejectLandPost);
+router.put("/:id", protect, adminOnly, updateLandPostByAdmin);
 router.delete("/:id", protect, adminOnly, deleteLandPostByAdmin);
 
 router.get("/:id", getSingleLand);

@@ -24,10 +24,6 @@ const createLandPost = async (req, res) => {
 
     const sellerId = req.user?.id || req.user?.userId || req.user?._id;
 
-    console.log("req.user:", req.user);
-    console.log("sellerId:", sellerId);
-    console.log("req.body:", req.body);
-
     if (!sellerId) {
       return res.status(401).json({
         message: "Invalid user token. Please log in again.",
@@ -176,7 +172,6 @@ const approveLandPost = async (req, res) => {
     land.status = "approved";
     land.approvedAt = new Date();
     land.approvedBy = req.user.email || "admin";
-
     land.rejectedAt = null;
     land.rejectedBy = "";
     land.rejectionReason = "";
@@ -212,7 +207,6 @@ const rejectLandPost = async (req, res) => {
     land.rejectedAt = new Date();
     land.rejectedBy = req.user.email || "admin";
     land.rejectionReason = rejectionReason || "";
-
     land.approvedAt = null;
     land.approvedBy = "";
 
@@ -225,6 +219,79 @@ const rejectLandPost = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: "Server error while rejecting land post",
+      error: error.message,
+    });
+  }
+};
+
+const updateLandPostByAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      title,
+      description,
+      landType,
+      price,
+      landSizeSqft,
+      division,
+      district,
+      upazila,
+      address,
+      ownershipType,
+      roadAccess,
+      nearbyLandmark,
+      priceNegotiable,
+    } = req.body;
+
+    const land = await Land.findById(id);
+
+    if (!land) {
+      return res.status(404).json({
+        message: "Land post not found",
+      });
+    }
+
+    if (
+      !title ||
+      !description ||
+      !landType ||
+      !price ||
+      !landSizeSqft ||
+      !division ||
+      !district ||
+      !upazila ||
+      !address
+    ) {
+      return res.status(400).json({
+        message: "Please fill all required fields",
+      });
+    }
+
+    land.title = title;
+    land.description = description;
+    land.landType = landType;
+    land.price = price;
+    land.landSizeSqft = landSizeSqft;
+    land.location = {
+      division,
+      district,
+      upazila,
+      address,
+    };
+    land.ownershipType = ownershipType || "";
+    land.roadAccess = roadAccess || "";
+    land.nearbyLandmark = nearbyLandmark || "";
+    land.priceNegotiable = priceNegotiable || false;
+
+    await land.save();
+
+    return res.status(200).json({
+      message: "Land post updated successfully",
+      land,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while updating land post",
       error: error.message,
     });
   }
@@ -263,6 +330,7 @@ module.exports = {
   getAllLandsForAdmin,
   approveLandPost,
   rejectLandPost,
+  updateLandPostByAdmin,
   deleteLandPostByAdmin,
   getSingleLand,
 };

@@ -8,6 +8,22 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [editingPost, setEditingPost] = useState(null);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    description: "",
+    landType: "",
+    price: "",
+    landSizeSqft: "",
+    division: "",
+    district: "",
+    upazila: "",
+    address: "",
+    ownershipType: "",
+    roadAccess: "",
+    nearbyLandmark: "",
+    priceNegotiable: false,
+  });
 
   const fetchAllPosts = async () => {
     try {
@@ -127,6 +143,67 @@ function AdminDashboard() {
     }
   };
 
+  const openEditModal = (post) => {
+    setEditingPost(post);
+    setEditForm({
+      title: post.title || "",
+      description: post.description || "",
+      landType: post.landType || "",
+      price: post.price || "",
+      landSizeSqft: post.landSizeSqft || "",
+      division: post.location?.division || "",
+      district: post.location?.district || "",
+      upazila: post.location?.upazila || "",
+      address: post.location?.address || "",
+      ownershipType: post.ownershipType || "",
+      roadAccess: post.roadAccess || "",
+      nearbyLandmark: post.nearbyLandmark || "",
+      priceNegotiable: post.priceNegotiable || false,
+    });
+  };
+
+  const closeEditModal = () => {
+    setEditingPost(null);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    setEditForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setErrorMessage("");
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/lands/${editingPost._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(editForm),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update post");
+      }
+
+      setMessage(data.message);
+      setEditingPost(null);
+      fetchAllPosts();
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
   const pendingPosts = allPosts.filter((post) => post.status === "pending");
   const approvedPosts = allPosts.filter((post) => post.status === "approved");
   const rejectedPosts = allPosts.filter((post) => post.status === "rejected");
@@ -139,7 +216,7 @@ function AdminDashboard() {
           <h1>Manage Land Posts</h1>
           <p>
             Review submitted land listings, approve valid posts, reject unsuitable
-            ones, or delete unwanted listings from the platform.
+            ones, edit listing information, or delete unwanted posts.
           </p>
         </div>
 
@@ -173,6 +250,7 @@ function AdminDashboard() {
             handleApprove={handleApprove}
             handleReject={handleReject}
             handleDelete={handleDelete}
+            openEditModal={openEditModal}
           />
 
           <AdminSection
@@ -182,6 +260,7 @@ function AdminDashboard() {
             handleApprove={handleApprove}
             handleReject={handleReject}
             handleDelete={handleDelete}
+            openEditModal={openEditModal}
           />
 
           <AdminSection
@@ -191,8 +270,151 @@ function AdminDashboard() {
             handleApprove={handleApprove}
             handleReject={handleReject}
             handleDelete={handleDelete}
+            openEditModal={openEditModal}
           />
         </>
+      )}
+
+      {editingPost && (
+        <div className="admin-modal-overlay">
+          <div className="admin-edit-modal">
+            <div className="admin-edit-modal-header">
+              <h2>Edit Land Post</h2>
+              <button className="admin-close-btn" onClick={closeEditModal}>
+                ×
+              </button>
+            </div>
+
+            <form className="admin-edit-form" onSubmit={handleEditSubmit}>
+              <input
+                type="text"
+                name="title"
+                placeholder="Title"
+                value={editForm.title}
+                onChange={handleEditChange}
+                required
+              />
+
+              <textarea
+                name="description"
+                placeholder="Description"
+                value={editForm.description}
+                onChange={handleEditChange}
+                required
+              />
+
+              <input
+                type="text"
+                name="landType"
+                placeholder="Land Type"
+                value={editForm.landType}
+                onChange={handleEditChange}
+                required
+              />
+
+              <input
+                type="number"
+                name="price"
+                placeholder="Price"
+                value={editForm.price}
+                onChange={handleEditChange}
+                required
+              />
+
+              <input
+                type="number"
+                name="landSizeSqft"
+                placeholder="Land Size (sqft)"
+                value={editForm.landSizeSqft}
+                onChange={handleEditChange}
+                required
+              />
+
+              <input
+                type="text"
+                name="division"
+                placeholder="Division"
+                value={editForm.division}
+                onChange={handleEditChange}
+                required
+              />
+
+              <input
+                type="text"
+                name="district"
+                placeholder="District"
+                value={editForm.district}
+                onChange={handleEditChange}
+                required
+              />
+
+              <input
+                type="text"
+                name="upazila"
+                placeholder="Upazila"
+                value={editForm.upazila}
+                onChange={handleEditChange}
+                required
+              />
+
+              <input
+                type="text"
+                name="address"
+                placeholder="Address"
+                value={editForm.address}
+                onChange={handleEditChange}
+                required
+              />
+
+              <input
+                type="text"
+                name="ownershipType"
+                placeholder="Ownership Type"
+                value={editForm.ownershipType}
+                onChange={handleEditChange}
+              />
+
+              <input
+                type="text"
+                name="roadAccess"
+                placeholder="Road Access"
+                value={editForm.roadAccess}
+                onChange={handleEditChange}
+              />
+
+              <input
+                type="text"
+                name="nearbyLandmark"
+                placeholder="Nearby Landmark"
+                value={editForm.nearbyLandmark}
+                onChange={handleEditChange}
+              />
+
+              <label className="admin-checkbox-row">
+                <input
+                  type="checkbox"
+                  name="priceNegotiable"
+                  checked={editForm.priceNegotiable}
+                  onChange={handleEditChange}
+                />
+                Price Negotiable
+              </label>
+
+              <div className="admin-edit-actions">
+                <button type="submit" className="approve-post-btn">
+                  Save Changes
+                </button>
+                <button
+                  type="button"
+                  className="delete-post-btn"
+                  onClick={closeEditModal}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -205,6 +427,7 @@ function AdminSection({
   handleApprove,
   handleReject,
   handleDelete,
+  openEditModal,
 }) {
   return (
     <div className="admin-section-wrapper">
@@ -306,6 +529,13 @@ function AdminSection({
                   onClick={() => handleReject(post._id)}
                 >
                   Reject
+                </button>
+
+                <button
+                  className="edit-post-btn"
+                  onClick={() => openEditModal(post)}
+                >
+                  Edit
                 </button>
 
                 <button
