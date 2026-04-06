@@ -255,6 +255,9 @@ function UserDashboard() {
 
       setMessage(data.message);
       setFormData(initialFormData);
+      setLocationQuery("");
+      setLocationResults([]);
+      setLocationSearchError("");
       fetchMyPosts();
     } catch (error) {
       setErrorMessage(error.message);
