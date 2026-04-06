@@ -36,9 +36,38 @@ function LandDetails() {
     message: "",
   });
 
+  const [weather, setWeather] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState("");
   const latitude = land?.location?.latitude ? Number(land.location.latitude) : null;
   const longitude = land?.location?.longitude ? Number(land.location.longitude) : null;
   const hasMapLocation = latitude && longitude;
+
+  const getWeatherLabel = (code) => {
+  const weatherMap = {
+    0: "Clear sky",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Fog",
+    48: "Fog",
+    51: "Light drizzle",
+    53: "Moderate drizzle",
+    55: "Heavy drizzle",
+    61: "Light rain",
+    63: "Moderate rain",
+    65: "Heavy rain",
+    71: "Light snow",
+    73: "Moderate snow",
+    75: "Heavy snow",
+    80: "Rain showers",
+    81: "Moderate showers",
+    82: "Heavy showers",
+    95: "Thunderstorm",
+  };
+
+  return weatherMap[code] || "Unknown weather";
+};
 
   useEffect(() => {
     const fetchLand = async () => {
@@ -51,6 +80,28 @@ function LandDetails() {
         }
 
         setLand(data);
+        // ✅ Fetch weather after land loads
+        if (data?.location?.latitude && data?.location?.longitude) {
+          try {
+            setWeatherLoading(true);
+
+            const weatherRes = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${data.location.latitude}&longitude=${data.location.longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m`
+                );
+
+          const weatherData = await weatherRes.json();
+
+          if (!weatherRes.ok) {
+            throw new Error("Failed to fetch weather data");
+          }
+
+    setWeather(weatherData.current);
+  } catch (err) {
+    setWeatherError(err.message || "Failed to load weather");
+  } finally {
+    setWeatherLoading(false);
+  }
+}
       } catch (error) {
         setRequestError(error.message);
       } finally {
@@ -194,6 +245,51 @@ function LandDetails() {
     </p>
   )}
 </div>
+
+<div className="land-details-section">
+  <h3>Current Weather</h3>
+
+  {weatherLoading && (
+    <p className="weather-info-text">Loading weather information...</p>
+  )}
+
+  {weatherError && (
+    <p className="error-message weather-info-text">{weatherError}</p>
+  )}
+
+  {!weatherLoading && !weatherError && weather && (
+    <div className="weather-card">
+      <div className="weather-grid">
+        <div className="weather-box">
+          <span>Condition</span>
+          <strong>{getWeatherLabel(weather.weather_code)}</strong>
+        </div>
+
+        <div className="weather-box">
+          <span>Temperature</span>
+          <strong>{weather.temperature_2m}°C</strong>
+        </div>
+
+        <div className="weather-box">
+          <span>Humidity</span>
+          <strong>{weather.relative_humidity_2m}%</strong>
+        </div>
+
+        <div className="weather-box">
+          <span>Wind Speed</span>
+          <strong>{weather.wind_speed_10m} km/h</strong>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {!weatherLoading && !weatherError && !weather && (
+    <p className="weather-info-text">
+      Weather data is not available for this location.
+    </p>
+  )}
+</div>
+
 
           {land.nearbyLandmark && (
             <div className="land-details-section">
