@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./LandDetails.css";
-
+import NearbyPlaces from "../components/NearbyPlaces";
 
 // Fix for default marker icons in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -289,6 +289,10 @@ function LandDetails() {
     </p>
   )}
 </div>
+
+          {hasMapLocation && (
+            <NearbyPlaces latitude={latitude} longitude={longitude} />
+          )}
 
 
           {land.nearbyLandmark && (
