@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 const landRoutes = require("./routes/landRoutes");
 const buyRequestRoutes = require("./routes/buyRequestRoutes");
 const shortlistRoutes = require("./routes/shortlistRoutes");
+const placeRoutes = require("./routes/placeRoutes");
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use("/api/lands", landRoutes);
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/buy-requests", buyRequestRoutes);
 app.use("/api/shortlist", shortlistRoutes);
+app.use("/api/places", placeRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI)
@@ -27,8 +29,6 @@ mongoose
 app.get("/", (req, res) => {
   res.send("API is running");
 });
-
-
 
 const PORT = process.env.PORT || 5000;
 
