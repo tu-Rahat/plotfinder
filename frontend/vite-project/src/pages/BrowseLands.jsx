@@ -13,6 +13,12 @@ function BrowseLands() {
   const [errorMessage, setErrorMessage] = useState("");
   const [actionMessage, setActionMessage] = useState("");
 
+  const renderStars = (rating) => {
+    const value = Math.round(Number(rating) || 0);
+    const filled = Math.max(0, Math.min(5, value));
+    return "★".repeat(filled) + "☆".repeat(5 - filled);
+  };
+
   useEffect(() => {
     const fetchApprovedLands = async () => {
       try {
@@ -132,6 +138,12 @@ function BrowseLands() {
               <p className="land-description">
                 {land.description.slice(0, 90)}...
               </p>
+
+              {land.overallRating > 0 && (
+                <p className="land-rating">
+                  <strong>Rating:</strong> {renderStars(land.overallRating)} ({Number(land.overallRating).toFixed(1)})
+                </p>
+              )}
 
               <div className="land-card-actions">
                 <button

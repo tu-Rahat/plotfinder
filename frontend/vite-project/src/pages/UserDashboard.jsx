@@ -18,6 +18,11 @@ function UserDashboard() {
     ownershipType: "",
     roadAccess: "",
     nearbyLandmark: "",
+    locationRating: 3,
+    nearbyConstructionRating: 3,
+    accessibilityRating: 3,
+    roadHealthRating: 3,
+    crimeRateRating: 3,
     sellerPhone: storedUser?.phone || "",
     priceNegotiable: false,
     latitude: "",
@@ -279,6 +284,11 @@ function UserDashboard() {
       ownershipType: post.ownershipType || "",
       roadAccess: post.roadAccess || "",
       nearbyLandmark: post.nearbyLandmark || "",
+      locationRating: post.locationRating ?? 3,
+      nearbyConstructionRating: post.nearbyConstructionRating ?? 3,
+      accessibilityRating: post.accessibilityRating ?? 3,
+      roadHealthRating: post.roadHealthRating ?? 3,
+      crimeRateRating: post.crimeRateRating ?? 3,
       sellerPhone: post.sellerPhone || storedUser?.phone || "",
       priceNegotiable: post.priceNegotiable || false,
       latitude: post.location?.latitude || "",
@@ -694,6 +704,81 @@ function UserDashboard() {
                 value={formData.nearbyLandmark}
                 onChange={handleChange}
               />
+            </div>
+
+            <div className="form-group">
+              <label>Location Rating</label>
+              <select
+                name="locationRating"
+                value={formData.locationRating}
+                onChange={handleChange}
+              >
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <option key={value} value={value}>
+                    {value} / 5
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Nearby Construction Rating</label>
+              <select
+                name="nearbyConstructionRating"
+                value={formData.nearbyConstructionRating}
+                onChange={handleChange}
+              >
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <option key={value} value={value}>
+                    {value} / 5
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Accessibilities Rating</label>
+              <select
+                name="accessibilityRating"
+                value={formData.accessibilityRating}
+                onChange={handleChange}
+              >
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <option key={value} value={value}>
+                    {value} / 5
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Road Health Rating</label>
+              <select
+                name="roadHealthRating"
+                value={formData.roadHealthRating}
+                onChange={handleChange}
+              >
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <option key={value} value={value}>
+                    {value} / 5
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Crime Rate Rating</label>
+              <select
+                name="crimeRateRating"
+                value={formData.crimeRateRating}
+                onChange={handleChange}
+              >
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <option key={value} value={value}>
+                    {value} / 5
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="form-group">
@@ -1180,6 +1265,81 @@ function UserDashboard() {
                       value={editFormData.nearbyLandmark}
                       onChange={handleEditChange}
                     />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Location Rating</label>
+                    <select
+                      name="locationRating"
+                      value={editFormData.locationRating}
+                      onChange={handleEditChange}
+                    >
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <option key={value} value={value}>
+                          {value} / 5
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Nearby Construction Rating</label>
+                    <select
+                      name="nearbyConstructionRating"
+                      value={editFormData.nearbyConstructionRating}
+                      onChange={handleEditChange}
+                    >
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <option key={value} value={value}>
+                          {value} / 5
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Accessibilities Rating</label>
+                    <select
+                      name="accessibilityRating"
+                      value={editFormData.accessibilityRating}
+                      onChange={handleEditChange}
+                    >
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <option key={value} value={value}>
+                          {value} / 5
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Road Health Rating</label>
+                    <select
+                      name="roadHealthRating"
+                      value={editFormData.roadHealthRating}
+                      onChange={handleEditChange}
+                    >
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <option key={value} value={value}>
+                          {value} / 5
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Crime Rate Rating</label>
+                    <select
+                      name="crimeRateRating"
+                      value={editFormData.crimeRateRating}
+                      onChange={handleEditChange}
+                    >
+                      {[1, 2, 3, 4, 5].map((value) => (
+                        <option key={value} value={value}>
+                          {value} / 5
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="form-group">

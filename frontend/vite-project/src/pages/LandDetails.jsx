@@ -43,6 +43,12 @@ function LandDetails() {
   const longitude = land?.location?.longitude ? Number(land.location.longitude) : null;
   const hasMapLocation = latitude && longitude;
 
+  const renderStars = (rating) => {
+    const value = Math.round(Number(rating) || 0);
+    const filledStars = Math.max(0, Math.min(5, value));
+    return "★".repeat(filledStars) + "☆".repeat(5 - filledStars);
+  };
+
   const getWeatherLabel = (code) => {
   const weatherMap = {
     0: "Clear sky",
@@ -204,6 +210,22 @@ function LandDetails() {
               <strong>{land.priceNegotiable ? "Yes" : "No"}</strong>
             </div>
           </div>
+
+          {land.overallRating > 0 && (
+            <div className="land-rating-summary">
+              <h3>Property Ranking</h3>
+              <p>
+                <strong>Overall:</strong> {renderStars(land.overallRating)} ({Number(land.overallRating).toFixed(1)})
+              </p>
+              <div className="rating-grid">
+                <p><strong>Location:</strong> {land.locationRating} / 5</p>
+                <p><strong>Nearby Construction:</strong> {land.nearbyConstructionRating} / 5</p>
+                <p><strong>Accessibilities:</strong> {land.accessibilityRating} / 5</p>
+                <p><strong>Road Health:</strong> {land.roadHealthRating} / 5</p>
+                <p><strong>Crime Rate:</strong> {land.crimeRateRating} / 5</p>
+              </div>
+            </div>
+          )}
 
           <div className="land-details-section">
   <h3>Location</h3>
