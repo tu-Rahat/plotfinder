@@ -79,6 +79,42 @@ const landSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    locationRating: {
+      type: Number,
+      min: 0,
+      max: 5,
+      default: 0,
+    },
+    nearbyConstructionRating: {
+      type: Number,
+      min: 0,
+      max: 5,
+      default: 0,
+    },
+    accessibilityRating: {
+      type: Number,
+      min: 0,
+      max: 5,
+      default: 0,
+    },
+    roadHealthRating: {
+      type: Number,
+      min: 0,
+      max: 5,
+      default: 0,
+    },
+    crimeRateRating: {
+      type: Number,
+      min: 0,
+      max: 5,
+      default: 0,
+    },
+    overallRating: {
+      type: Number,
+      min: 0,
+      max: 5,
+      default: 0,
+    },
     priceNegotiable: {
       type: Boolean,
       default: false,

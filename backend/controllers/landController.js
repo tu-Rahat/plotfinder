@@ -20,6 +20,11 @@ const createLandPost = async (req, res) => {
       roadAccess,
       nearbyLandmark,
       priceNegotiable,
+      locationRating,
+      nearbyConstructionRating,
+      accessibilityRating,
+      roadHealthRating,
+      crimeRateRating,
       latitude,
       longitude,
       formattedAddress,
@@ -45,7 +50,12 @@ const createLandPost = async (req, res) => {
       !division ||
       !district ||
       !upazila ||
-      !address
+      !address ||
+      locationRating == null ||
+      nearbyConstructionRating == null ||
+      accessibilityRating == null ||
+      roadHealthRating == null ||
+      crimeRateRating == null
     ) {
       return res.status(400).json({
         message: "Please fill all required fields",
@@ -75,6 +85,20 @@ const createLandPost = async (req, res) => {
       ownershipType,
       roadAccess,
       nearbyLandmark,
+      locationRating,
+      nearbyConstructionRating,
+      accessibilityRating,
+      roadHealthRating,
+      crimeRateRating,
+      overallRating: Number(
+        (
+          Number(locationRating) +
+          Number(nearbyConstructionRating) +
+          Number(accessibilityRating) +
+          Number(roadHealthRating) +
+          Number(crimeRateRating)
+        ) / 5
+      ).toFixed(2),
       priceNegotiable,
       status: "pending",
     });
@@ -247,6 +271,11 @@ const updateLandPostByAdmin = async (req, res) => {
       roadAccess,
       nearbyLandmark,
       priceNegotiable,
+      locationRating,
+      nearbyConstructionRating,
+      accessibilityRating,
+      roadHealthRating,
+      crimeRateRating,
       latitude,
       longitude,
       formattedAddress,
@@ -269,7 +298,12 @@ const updateLandPostByAdmin = async (req, res) => {
       !division ||
       !district ||
       !upazila ||
-      !address
+      !address ||
+      locationRating == null ||
+      nearbyConstructionRating == null ||
+      accessibilityRating == null ||
+      roadHealthRating == null ||
+      crimeRateRating == null
     ) {
       return res.status(400).json({
         message: "Please fill all required fields",
@@ -294,6 +328,20 @@ const updateLandPostByAdmin = async (req, res) => {
     land.roadAccess = roadAccess || "";
     land.nearbyLandmark = nearbyLandmark || "";
     land.priceNegotiable = priceNegotiable || false;
+    land.locationRating = Number(locationRating);
+    land.nearbyConstructionRating = Number(nearbyConstructionRating);
+    land.accessibilityRating = Number(accessibilityRating);
+    land.roadHealthRating = Number(roadHealthRating);
+    land.crimeRateRating = Number(crimeRateRating);
+    land.overallRating = Number(
+      (
+        Number(locationRating) +
+        Number(nearbyConstructionRating) +
+        Number(accessibilityRating) +
+        Number(roadHealthRating) +
+        Number(crimeRateRating)
+      ) / 5
+    ).toFixed(2);
 
     await land.save();
 
@@ -354,6 +402,11 @@ const updateMyLandPost = async (req, res) => {
       nearbyLandmark,
       sellerPhone,
       priceNegotiable,
+      locationRating,
+      nearbyConstructionRating,
+      accessibilityRating,
+      roadHealthRating,
+      crimeRateRating,
       latitude,
       longitude,
       formattedAddress,
@@ -377,7 +430,12 @@ const updateMyLandPost = async (req, res) => {
       !district ||
       !upazila ||
       !address ||
-      !sellerPhone
+      !sellerPhone ||
+      locationRating == null ||
+      nearbyConstructionRating == null ||
+      accessibilityRating == null ||
+      roadHealthRating == null ||
+      crimeRateRating == null
     ) {
       return res.status(400).json({
         message: "Please fill all required fields",
@@ -403,6 +461,20 @@ const updateMyLandPost = async (req, res) => {
     land.nearbyLandmark = nearbyLandmark || "";
     land.sellerPhone = sellerPhone;
     land.priceNegotiable = priceNegotiable || false;
+    land.locationRating = Number(locationRating);
+    land.nearbyConstructionRating = Number(nearbyConstructionRating);
+    land.accessibilityRating = Number(accessibilityRating);
+    land.roadHealthRating = Number(roadHealthRating);
+    land.crimeRateRating = Number(crimeRateRating);
+    land.overallRating = Number(
+      (
+        Number(locationRating) +
+        Number(nearbyConstructionRating) +
+        Number(accessibilityRating) +
+        Number(roadHealthRating) +
+        Number(crimeRateRating)
+      ) / 5
+    ).toFixed(2);
 
     await land.save();
 
