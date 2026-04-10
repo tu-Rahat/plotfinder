@@ -1,81 +1,105 @@
-import { useEffect, useState } from "react";
-import "./AdminDashboard.css";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+
+const API_BASE_URL = "http://localhost:5000";
 
 function AdminDashboard() {
-  const token = localStorage.getItem("token");
-
-  const [allPosts, setAllPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [editingPost, setEditingPost] = useState(null);
-  const [editForm, setEditForm] = useState({
-    title: "",
-    description: "",
-    landType: "",
-    price: "",
-    landSizeSqft: "",
-    division: "",
-    district: "",
-    upazila: "",
-    address: "",
-    ownershipType: "",
-    roadAccess: "",
-    nearbyLandmark: "",
-    priceNegotiable: false,
-  });
-
-  const fetchAllPosts = async () => {
+  const token = useMemo(() => localStorage.getItem("token"), []);
+  const user = useMemo(() => {
+    const raw = localStorage.getItem("user");
+    if (!raw) return null;
     try {
-      setLoading(true);
-      setErrorMessage("");
-
-      const response = await fetch("http://localhost:5000/api/lands/admin/all", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch land posts");
-      }
-
-      setAllPosts(data);
-    } catch (error) {
-      setErrorMessage(error.message);
-    } finally {
-      setLoading(false);
+      return JSON.parse(raw);
+    } catch {
+      return null;
     }
-  };
-
-  useEffect(() => {
-    fetchAllPosts();
   }, []);
 
-  const handleApprove = async (id) => {
-    setMessage("");
-    setErrorMessage("");
+  const [formData, setFormData] = useState({
+    title: "",
+    location: "",
+    price: "",
+    acres: "",
+    tag: "",
+    image: "",
+    featuresText: "",
+  });
+  const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [createdList, setCreatedList] = useState([]);
 
+  const isAdmin = user?.role === "admin";
+
+  useEffect(() => {
+    // Reset messages when switching roles/logins.
+    setMessage("");
+    setCreatedList([]);
+  }, [isAdmin]);
+
+  const handleChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+
+    if (!token) {
+      setMessage("Please login as admin to add properties.");
+      return;
+    }
+    if (!isAdmin) {
+      setMessage("Admin only. Your account does not have permission.");
+      return;
+    }
+
+    const features = formData.featuresText
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    setSubmitting(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/lands/${id}/approve`, {
-        method: "PATCH",
+      const response = await fetch(`${API_BASE_URL}/api/properties`, {
+        method: "POST",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({
+          title: formData.title,
+          location: formData.location,
+          price: formData.price,
+          acres: formData.acres,
+          tag: formData.tag,
+          image: formData.image,
+          features,
+        }),
       });
 
       const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.message || "Failed to approve post");
+        throw new Error(data.message || "Failed to create property");
       }
 
-      setMessage(data.message);
-      fetchAllPosts();
+      setMessage("Property added successfully.");
+      setCreatedList((prev) => [data.property, ...prev].slice(0, 5));
+      setFormData({
+        title: "",
+        location: "",
+        price: "",
+        acres: "",
+        tag: "",
+        image: "",
+        featuresText: "",
+      });
     } catch (error) {
-      setErrorMessage(error.message);
+      setMessage(error.message || "Failed to create property");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -209,346 +233,112 @@ function AdminDashboard() {
   const rejectedPosts = allPosts.filter((post) => post.status === "rejected");
 
   return (
-    <div className="admin-dashboard-page">
-      <div className="admin-dashboard-header">
-        <div>
-          <span className="admin-badge">Admin Panel</span>
-          <h1>Manage Land Posts</h1>
-          <p>
-            Review submitted land listings, approve valid posts, reject unsuitable
-            ones, edit listing information, or delete unwanted posts.
-          </p>
-        </div>
+    <div className="admin-page">
+      <form className="admin-form" onSubmit={handleSubmit}>
+        <h2>Add Property (Admin)</h2>
 
-        <div className="admin-summary-card">
-          <h3>Review Summary</h3>
-          <p>
-            <strong>{pendingPosts.length}</strong> pending post
-            {pendingPosts.length !== 1 ? "s" : ""}
+        {!token && (
+          <p className="admin-hint">
+            Please <Link to="/login">login</Link> as admin.
           </p>
-          <p>
-            <strong>{approvedPosts.length}</strong> approved post
-            {approvedPosts.length !== 1 ? "s" : ""}
-          </p>
-          <p>
-            <strong>{rejectedPosts.length}</strong> rejected post
-            {rejectedPosts.length !== 1 ? "s" : ""}
-          </p>
-        </div>
-      </div>
+        )}
 
-      {message && <p className="admin-success-message">{message}</p>}
-      {errorMessage && <p className="admin-error-message">{errorMessage}</p>}
-      {loading && <p className="admin-info-message">Loading land posts...</p>}
+        {token && !isAdmin && (
+          <p className="admin-hint admin-hint-error">
+            You are logged in, but your account is not admin.
+          </p>
+        )}
 
-      {!loading && (
-        <>
-          <AdminSection
-            title="Pending Land Posts"
-            posts={pendingPosts}
-            emptyMessage="No pending land posts right now."
-            handleApprove={handleApprove}
-            handleReject={handleReject}
-            handleDelete={handleDelete}
-            openEditModal={openEditModal}
+        <label className="admin-input-row">
+          <span>Title</span>
+          <input
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            required
           />
+        </label>
 
-          <AdminSection
-            title="Approved Land Posts"
-            posts={approvedPosts}
-            emptyMessage="No approved land posts right now."
-            handleApprove={handleApprove}
-            handleReject={handleReject}
-            handleDelete={handleDelete}
-            openEditModal={openEditModal}
+        <label className="admin-input-row">
+          <span>Location</span>
+          <input
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            required
           />
+        </label>
 
-          <AdminSection
-            title="Rejected Land Posts"
-            posts={rejectedPosts}
-            emptyMessage="No rejected land posts right now."
-            handleApprove={handleApprove}
-            handleReject={handleReject}
-            handleDelete={handleDelete}
-            openEditModal={openEditModal}
+        <label className="admin-input-row">
+          <span>Price</span>
+          <input
+            name="price"
+            value={formData.price}
+            onChange={handleChange}
+            required
           />
-        </>
-      )}
+        </label>
 
-      {editingPost && (
-        <div className="admin-modal-overlay">
-          <div className="admin-edit-modal">
-            <div className="admin-edit-modal-header">
-              <h2>Edit Land Post</h2>
-              <button className="admin-close-btn" onClick={closeEditModal}>
-                ×
-              </button>
-            </div>
+        <label className="admin-input-row">
+          <span>Acres</span>
+          <input
+            name="acres"
+            value={formData.acres}
+            onChange={handleChange}
+            required
+          />
+        </label>
 
-            <form className="admin-edit-form" onSubmit={handleEditSubmit}>
-              <input
-                type="text"
-                name="title"
-                placeholder="Title"
-                value={editForm.title}
-                onChange={handleEditChange}
-                required
-              />
+        <label className="admin-input-row">
+          <span>Tag</span>
+          <input
+            name="tag"
+            value={formData.tag}
+            onChange={handleChange}
+            required
+          />
+        </label>
 
-              <textarea
-                name="description"
-                placeholder="Description"
-                value={editForm.description}
-                onChange={handleEditChange}
-                required
-              />
+        <label className="admin-input-row">
+          <span>Image URL</span>
+          <input
+            name="image"
+            value={formData.image}
+            onChange={handleChange}
+            required
+          />
+        </label>
 
-              <input
-                type="text"
-                name="landType"
-                placeholder="Land Type"
-                value={editForm.landType}
-                onChange={handleEditChange}
-                required
-              />
+        <label className="admin-input-row">
+          <span>Features (comma separated)</span>
+          <textarea
+            name="featuresText"
+            value={formData.featuresText}
+            onChange={handleChange}
+            rows={3}
+          />
+        </label>
 
-              <input
-                type="number"
-                name="price"
-                placeholder="Price"
-                value={editForm.price}
-                onChange={handleEditChange}
-                required
-              />
+        <button className="admin-submit-btn" type="submit" disabled={submitting}>
+          {submitting ? "Saving..." : "Add Property"}
+        </button>
 
-              <input
-                type="number"
-                name="landSizeSqft"
-                placeholder="Land Size (sqft)"
-                value={editForm.landSizeSqft}
-                onChange={handleEditChange}
-                required
-              />
+        {message && <p className="admin-hint">{message}</p>}
 
-              <input
-                type="text"
-                name="division"
-                placeholder="Division"
-                value={editForm.division}
-                onChange={handleEditChange}
-                required
-              />
-
-              <input
-                type="text"
-                name="district"
-                placeholder="District"
-                value={editForm.district}
-                onChange={handleEditChange}
-                required
-              />
-
-              <input
-                type="text"
-                name="upazila"
-                placeholder="Upazila"
-                value={editForm.upazila}
-                onChange={handleEditChange}
-                required
-              />
-
-              <input
-                type="text"
-                name="address"
-                placeholder="Address"
-                value={editForm.address}
-                onChange={handleEditChange}
-                required
-              />
-
-              <input
-                type="text"
-                name="ownershipType"
-                placeholder="Ownership Type"
-                value={editForm.ownershipType}
-                onChange={handleEditChange}
-              />
-
-              <input
-                type="text"
-                name="roadAccess"
-                placeholder="Road Access"
-                value={editForm.roadAccess}
-                onChange={handleEditChange}
-              />
-
-              <input
-                type="text"
-                name="nearbyLandmark"
-                placeholder="Nearby Landmark"
-                value={editForm.nearbyLandmark}
-                onChange={handleEditChange}
-              />
-
-              <label className="admin-checkbox-row">
-                <input
-                  type="checkbox"
-                  name="priceNegotiable"
-                  checked={editForm.priceNegotiable}
-                  onChange={handleEditChange}
-                />
-                Price Negotiable
-              </label>
-
-              <div className="admin-edit-actions">
-                <button type="submit" className="approve-post-btn">
-                  Save Changes
-                </button>
-                <button
-                  type="button"
-                  className="delete-post-btn"
-                  onClick={closeEditModal}
-                >
-                  Cancel
-                </button>
+        {createdList.length > 0 && (
+          <div className="admin-created">
+            <h3>Recently added</h3>
+            {createdList.map((p) => (
+              <div key={p._id} className="admin-created-item">
+                <strong>{p.title}</strong>
+                <span className="admin-created-sub">
+                  {p.location} - {p.price}
+                </span>
               </div>
-            </form>
+            ))}
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function AdminSection({
-  title,
-  posts,
-  emptyMessage,
-  handleApprove,
-  handleReject,
-  handleDelete,
-  openEditModal,
-}) {
-  return (
-    <div className="admin-section-wrapper">
-      <h2 className="admin-section-title">{title}</h2>
-
-      {posts.length === 0 ? (
-        <p className="admin-info-message">{emptyMessage}</p>
-      ) : (
-        <div className="admin-posts-grid">
-          {posts.map((post) => (
-            <div className="admin-post-card" key={post._id}>
-              <div className="admin-post-top">
-                <div>
-                  <span className="admin-status-badge">
-                    {post.status === "pending"
-                      ? "Pending Review"
-                      : post.status === "approved"
-                      ? "Approved"
-                      : "Rejected"}
-                  </span>
-                  <h3>{post.title}</h3>
-                </div>
-                <p className="admin-post-price">
-                  ৳ {Number(post.price).toLocaleString()}
-                </p>
-              </div>
-
-              <p className="admin-post-description">{post.description}</p>
-
-              <div className="admin-post-grid">
-                <div className="admin-info-box">
-                  <span>Land Type</span>
-                  <strong>{post.landType}</strong>
-                </div>
-                <div className="admin-info-box">
-                  <span>Size</span>
-                  <strong>{post.landSizeSqft} sqft</strong>
-                </div>
-                <div className="admin-info-box">
-                  <span>Ownership</span>
-                  <strong>{post.ownershipType || "Not specified"}</strong>
-                </div>
-                <div className="admin-info-box">
-                  <span>Road Access</span>
-                  <strong>{post.roadAccess || "Not specified"}</strong>
-                </div>
-              </div>
-
-              <div className="admin-section">
-                <h4>Location</h4>
-                <p>
-                  {post.location.address}, {post.location.upazila},{" "}
-                  {post.location.district}, {post.location.division}
-                </p>
-              </div>
-
-              {post.nearbyLandmark && (
-                <div className="admin-section">
-                  <h4>Nearby Landmark</h4>
-                  <p>{post.nearbyLandmark}</p>
-                </div>
-              )}
-
-              {post.rejectionReason && (
-                <div className="admin-section">
-                  <h4>Rejection Reason</h4>
-                  <p>{post.rejectionReason}</p>
-                </div>
-              )}
-
-              <div className="admin-seller-box">
-                <h4>Seller Information</h4>
-                <p>
-                  <strong>Name:</strong> {post.sellerFirstName} {post.sellerLastName}
-                </p>
-                <p>
-                  <strong>Email:</strong> {post.sellerEmail}
-                </p>
-                <p>
-                  <strong>Phone:</strong> {post.sellerPhone}
-                </p>
-                <p>
-                  <strong>Posted:</strong> {new Date(post.createdAt).toLocaleString()}
-                </p>
-              </div>
-
-              <div className="admin-action-buttons">
-                {post.status !== "approved" && (
-                  <button
-                    className="approve-post-btn"
-                    onClick={() => handleApprove(post._id)}
-                  >
-                    Approve
-                  </button>
-                )}
-
-                <button
-                  className="reject-post-btn"
-                  onClick={() => handleReject(post._id)}
-                >
-                  Reject
-                </button>
-
-                <button
-                  className="edit-post-btn"
-                  onClick={() => openEditModal(post)}
-                >
-                  Edit
-                </button>
-
-                <button
-                  className="delete-post-btn"
-                  onClick={() => handleDelete(post._id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+        )}
+      </form>
     </div>
   );
 }
