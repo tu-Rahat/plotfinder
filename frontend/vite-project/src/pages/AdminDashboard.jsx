@@ -103,6 +103,135 @@ function AdminDashboard() {
     }
   };
 
+  const handleReject = async (id) => {
+    setMessage("");
+    setErrorMessage("");
+
+    const rejectionReason = window.prompt("Enter rejection reason (optional):", "");
+
+    if (rejectionReason === null) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/lands/${id}/reject`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ rejectionReason }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to reject post");
+      }
+
+      setMessage(data.message);
+      fetchAllPosts();
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    setMessage("");
+    setErrorMessage("");
+
+    const confirmed = window.confirm("Are you sure you want to delete this land post?");
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/lands/${id}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to delete post");
+      }
+
+      setMessage(data.message);
+      fetchAllPosts();
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
+  const openEditModal = (post) => {
+    setEditingPost(post);
+    setEditForm({
+      title: post.title || "",
+      description: post.description || "",
+      landType: post.landType || "",
+      price: post.price || "",
+      landSizeSqft: post.landSizeSqft || "",
+      division: post.location?.division || "",
+      district: post.location?.district || "",
+      upazila: post.location?.upazila || "",
+      address: post.location?.address || "",
+      ownershipType: post.ownershipType || "",
+      roadAccess: post.roadAccess || "",
+      nearbyLandmark: post.nearbyLandmark || "",
+      priceNegotiable: post.priceNegotiable || false,
+    });
+  };
+
+  const closeEditModal = () => {
+    setEditingPost(null);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    setEditForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    setMessage("");
+    setErrorMessage("");
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/lands/${editingPost._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(editForm),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update post");
+      }
+
+      setMessage(data.message);
+      setEditingPost(null);
+      fetchAllPosts();
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
+  const pendingPosts = allPosts.filter((post) => post.status === "pending");
+  const approvedPosts = allPosts.filter((post) => post.status === "approved");
+  const rejectedPosts = allPosts.filter((post) => post.status === "rejected");
+
   return (
     <div className="admin-page">
       <form className="admin-form" onSubmit={handleSubmit}>

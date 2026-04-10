@@ -1,6 +1,19 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import "./LandDetails.css";
+import NearbyPlaces from "../components/NearbyPlaces";
+
+// Fix for default marker icons in Leaflet
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+});
+
 
 function LandDetails() {
   const { id } = useParams();
@@ -23,6 +36,39 @@ function LandDetails() {
     message: "",
   });
 
+  const [weather, setWeather] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState("");
+  const latitude = land?.location?.latitude ? Number(land.location.latitude) : null;
+  const longitude = land?.location?.longitude ? Number(land.location.longitude) : null;
+  const hasMapLocation = latitude && longitude;
+
+  const getWeatherLabel = (code) => {
+  const weatherMap = {
+    0: "Clear sky",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Fog",
+    48: "Fog",
+    51: "Light drizzle",
+    53: "Moderate drizzle",
+    55: "Heavy drizzle",
+    61: "Light rain",
+    63: "Moderate rain",
+    65: "Heavy rain",
+    71: "Light snow",
+    73: "Moderate snow",
+    75: "Heavy snow",
+    80: "Rain showers",
+    81: "Moderate showers",
+    82: "Heavy showers",
+    95: "Thunderstorm",
+  };
+
+  return weatherMap[code] || "Unknown weather";
+};
+
   useEffect(() => {
     const fetchLand = async () => {
       try {
@@ -34,6 +80,28 @@ function LandDetails() {
         }
 
         setLand(data);
+        // ✅ Fetch weather after land loads
+        if (data?.location?.latitude && data?.location?.longitude) {
+          try {
+            setWeatherLoading(true);
+
+            const weatherRes = await fetch(
+        `https://api.open-meteo.com/v1/forecast?latitude=${data.location.latitude}&longitude=${data.location.longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m`
+                );
+
+          const weatherData = await weatherRes.json();
+
+          if (!weatherRes.ok) {
+            throw new Error("Failed to fetch weather data");
+          }
+
+    setWeather(weatherData.current);
+  } catch (err) {
+    setWeatherError(err.message || "Failed to load weather");
+  } finally {
+    setWeatherLoading(false);
+  }
+}
       } catch (error) {
         setRequestError(error.message);
       } finally {
@@ -138,12 +206,94 @@ function LandDetails() {
           </div>
 
           <div className="land-details-section">
-            <h3>Location</h3>
-            <p>
-              {land.location.address}, {land.location.upazila}, {land.location.district},{" "}
-              {land.location.division}
-            </p>
-          </div>
+  <h3>Location</h3>
+  <p>
+    {land.location.address}, {land.location.upazila}, {land.location.district},{" "}
+    {land.location.division}
+  </p>
+
+  {land.location.formattedAddress && (
+    <p className="formatted-location-text">
+      <strong>Map Address:</strong> {land.location.formattedAddress}
+    </p>
+  )}
+
+  {hasMapLocation ? (
+    <div className="land-map-wrapper">
+      <MapContainer
+        center={[latitude, longitude]}
+        zoom={15}
+        scrollWheelZoom={false}
+        className="land-details-map"
+      >
+        <TileLayer
+          attribution='&copy; OpenStreetMap contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={[latitude, longitude]}>
+          <Popup>
+            <strong>{land.title}</strong>
+            <br />
+            {land.location.formattedAddress || land.location.address}
+          </Popup>
+        </Marker>
+      </MapContainer>
+    </div>
+  ) : (
+    <p className="map-unavailable-text">
+      Map location is not available for this land post.
+    </p>
+  )}
+</div>
+
+<div className="land-details-section">
+  <h3>Current Weather</h3>
+
+  {weatherLoading && (
+    <p className="weather-info-text">Loading weather information...</p>
+  )}
+
+  {weatherError && (
+    <p className="error-message weather-info-text">{weatherError}</p>
+  )}
+
+  {!weatherLoading && !weatherError && weather && (
+    <div className="weather-card">
+      <div className="weather-grid">
+        <div className="weather-box">
+          <span>Condition</span>
+          <strong>{getWeatherLabel(weather.weather_code)}</strong>
+        </div>
+
+        <div className="weather-box">
+          <span>Temperature</span>
+          <strong>{weather.temperature_2m}°C</strong>
+        </div>
+
+        <div className="weather-box">
+          <span>Humidity</span>
+          <strong>{weather.relative_humidity_2m}%</strong>
+        </div>
+
+        <div className="weather-box">
+          <span>Wind Speed</span>
+          <strong>{weather.wind_speed_10m} km/h</strong>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {!weatherLoading && !weatherError && !weather && (
+    <p className="weather-info-text">
+      Weather data is not available for this location.
+    </p>
+  )}
+</div>
+
+          {hasMapLocation && (
+            <NearbyPlaces latitude={latitude} longitude={longitude} />
+          )}
+
 
           {land.nearbyLandmark && (
             <div className="land-details-section">
