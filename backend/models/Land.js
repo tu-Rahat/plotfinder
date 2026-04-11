@@ -119,6 +119,40 @@ const landSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    preview3D: {
+      enabled: {
+        type: Boolean,
+        default: false,
+      },
+      plotWidth: {
+        type: Number,
+        min: 10,
+        default: 40,
+      },
+      plotDepth: {
+        type: Number,
+        min: 10,
+        default: 60,
+      },
+      floors: {
+        type: Number,
+        min: 1,
+        max: 20,
+        default: 2,
+      },
+      floorHeight: {
+        type: Number,
+        min: 8,
+        max: 20,
+        default: 10,
+      },
+      buildingCoverage: {
+        type: Number,
+        min: 20,
+        max: 90,
+        default: 60,
+      },
+    },
 
     status: {
       type: String,

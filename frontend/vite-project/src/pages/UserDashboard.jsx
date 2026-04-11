@@ -28,6 +28,12 @@ function UserDashboard() {
     latitude: "",
     longitude: "",
     formattedAddress: "",
+    preview3DEnabled: false,
+    previewPlotWidth: 40,
+    previewPlotDepth: 60,
+    previewFloors: 2,
+    previewFloorHeight: 10,
+    previewBuildingCoverage: 60,
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -241,6 +247,14 @@ function UserDashboard() {
         sellerLastName: storedUser?.lastName || "",
         sellerEmail: storedUser?.email || "",
         sellerPhone: formData.sellerPhone,
+        preview3D: {
+          enabled: formData.preview3DEnabled,
+          plotWidth: Number(formData.previewPlotWidth || 40),
+          plotDepth: Number(formData.previewPlotDepth || 60),
+          floors: Number(formData.previewFloors || 2),
+          floorHeight: Number(formData.previewFloorHeight || 10),
+          buildingCoverage: Number(formData.previewBuildingCoverage || 60),
+        },
       };
 
       const response = await fetch("http://localhost:5000/api/lands", {
@@ -294,6 +308,12 @@ function UserDashboard() {
       latitude: post.location?.latitude || "",
       longitude: post.location?.longitude || "",
       formattedAddress: post.location?.formattedAddress || "",
+      preview3DEnabled: post.preview3D?.enabled || false,
+      previewPlotWidth: post.preview3D?.plotWidth || 40,
+      previewPlotDepth: post.preview3D?.plotDepth || 60,
+      previewFloors: post.preview3D?.floors || 2,
+      previewFloorHeight: post.preview3D?.floorHeight || 10,
+      previewBuildingCoverage: post.preview3D?.buildingCoverage || 60,
 
     });
     setEditLocationQuery(post.location?.formattedAddress || post.location?.address || "");
@@ -336,6 +356,14 @@ function UserDashboard() {
           body: JSON.stringify({
             ...editFormData,
             sellerPhone: editFormData.sellerPhone,
+            preview3D: {
+              enabled: editFormData.preview3DEnabled,
+              plotWidth: Number(editFormData.previewPlotWidth || 40),
+              plotDepth: Number(editFormData.previewPlotDepth || 60),
+              floors: Number(editFormData.previewFloors || 2),
+              floorHeight: Number(editFormData.previewFloorHeight || 10),
+              buildingCoverage: Number(editFormData.previewBuildingCoverage || 60),
+            },
           }),
         }
       );
@@ -554,6 +582,91 @@ function UserDashboard() {
                 Price negotiable
               </label>
             </div>
+          </div>
+        </div>
+
+        <div className="form-section">
+          <h2>Optional 3D Building Preview</h2>
+          <div className="form-grid">
+            <div className="form-group checkbox-group full-width">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="preview3DEnabled"
+                  checked={formData.preview3DEnabled}
+                  onChange={handleChange}
+                />
+                Enable 3D building preview for this land
+              </label>
+            </div>
+
+            {formData.preview3DEnabled && (
+              <>
+                <div className="form-group">
+                  <label>Plot Width (ft)</label>
+                  <input
+                    type="number"
+                    name="previewPlotWidth"
+                    min="10"
+                    value={formData.previewPlotWidth}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Plot Depth (ft)</label>
+                  <input
+                    type="number"
+                    name="previewPlotDepth"
+                    min="10"
+                    value={formData.previewPlotDepth}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Default Floors</label>
+                  <input
+                    type="number"
+                    name="previewFloors"
+                    min="1"
+                    max="20"
+                    value={formData.previewFloors}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Floor Height (ft)</label>
+                  <input
+                    type="number"
+                    name="previewFloorHeight"
+                    min="8"
+                    max="20"
+                    value={formData.previewFloorHeight}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Building Coverage (%)</label>
+                  <input
+                    type="number"
+                    name="previewBuildingCoverage"
+                    min="20"
+                    max="90"
+                    value={formData.previewBuildingCoverage}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group full-width">
+                  <p className="location-search-message">
+                    This creates a simple conceptual 3D block preview only. It is not an architectural plan.
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -1122,6 +1235,83 @@ function UserDashboard() {
                   </div>
                 </div>
               </div>
+
+        <div className="form-section">
+  <h2>Optional 3D Building Preview</h2>
+  <div className="form-grid">
+    <div className="form-group checkbox-group full-width">
+      <label className="checkbox-label">
+        <input
+          type="checkbox"
+          name="preview3DEnabled"
+          checked={editFormData.preview3DEnabled}
+          onChange={handleEditChange}
+        />
+        Enable 3D building preview for this land
+      </label>
+    </div>
+
+    {editFormData.preview3DEnabled && (
+      <>
+        <div className="form-group">
+          <label>Plot Width (ft)</label>
+          <input
+            type="number"
+            name="previewPlotWidth"
+            value={editFormData.previewPlotWidth}
+            onChange={handleEditChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Plot Depth (ft)</label>
+          <input
+            type="number"
+            name="previewPlotDepth"
+            value={editFormData.previewPlotDepth}
+            onChange={handleEditChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Default Floors</label>
+          <input
+            type="number"
+            name="previewFloors"
+            value={editFormData.previewFloors}
+            onChange={handleEditChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Floor Height (ft)</label>
+          <input
+            type="number"
+            name="previewFloorHeight"
+            value={editFormData.previewFloorHeight}
+            onChange={handleEditChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Building Coverage (%)</label>
+          <input
+            type="number"
+            name="previewBuildingCoverage"
+            value={editFormData.previewBuildingCoverage}
+            onChange={handleEditChange}
+          />
+        </div>
+
+        <div className="form-group full-width">
+          <p className="location-search-message">
+            This creates a simple conceptual 3D block preview only.
+          </p>
+        </div>
+      </>
+    )}
+  </div>
+</div>
 
               <div className="form-section">
                 <h2>Location Details</h2>

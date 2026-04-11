@@ -28,6 +28,7 @@ const createLandPost = async (req, res) => {
       latitude,
       longitude,
       formattedAddress,
+      preview3D,
     } = req.body;
 
     const sellerId = req.user?.id || req.user?.userId || req.user?._id;
@@ -100,6 +101,14 @@ const createLandPost = async (req, res) => {
         ) / 5
       ).toFixed(2),
       priceNegotiable,
+      preview3D: {
+        enabled: Boolean(preview3D?.enabled),
+        plotWidth: Number(preview3D?.plotWidth || 40),
+        plotDepth: Number(preview3D?.plotDepth || 60),
+        floors: Number(preview3D?.floors || 2),
+        floorHeight: Number(preview3D?.floorHeight || 10),
+        buildingCoverage: Number(preview3D?.buildingCoverage || 60),
+      },
       status: "pending",
     });
 
@@ -279,6 +288,7 @@ const updateLandPostByAdmin = async (req, res) => {
       latitude,
       longitude,
       formattedAddress,
+      preview3D,
     } = req.body;
 
     const land = await Land.findById(id);
@@ -342,7 +352,14 @@ const updateLandPostByAdmin = async (req, res) => {
         Number(crimeRateRating)
       ) / 5
     ).toFixed(2);
-
+    land.preview3D = {
+      enabled: Boolean(preview3D?.enabled),
+      plotWidth: Number(preview3D?.plotWidth || 40),
+      plotDepth: Number(preview3D?.plotDepth || 60),
+      floors: Number(preview3D?.floors || 2),
+      floorHeight: Number(preview3D?.floorHeight || 10),
+      buildingCoverage: Number(preview3D?.buildingCoverage || 60),
+    };
     await land.save();
 
     return res.status(200).json({
@@ -410,6 +427,7 @@ const updateMyLandPost = async (req, res) => {
       latitude,
       longitude,
       formattedAddress,
+      preview3D,
     } = req.body;
 
     const land = await Land.findOne({ _id: id, sellerId });
@@ -475,7 +493,14 @@ const updateMyLandPost = async (req, res) => {
         Number(crimeRateRating)
       ) / 5
     ).toFixed(2);
-
+    land.preview3D = {
+      enabled: Boolean(preview3D?.enabled),
+      plotWidth: Number(preview3D?.plotWidth || 40),
+      plotDepth: Number(preview3D?.plotDepth || 60),
+      floors: Number(preview3D?.floors || 2),
+      floorHeight: Number(preview3D?.floorHeight || 10),
+      buildingCoverage: Number(preview3D?.buildingCoverage || 60),
+    };
     await land.save();
 
     return res.status(200).json({
