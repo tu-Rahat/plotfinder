@@ -33,7 +33,9 @@ function UserDashboard() {
     previewPlotDepth: 60,
     previewFloors: 2,
     previewFloorHeight: 10,
-    previewBuildingCoverage: 60,
+    previewBuildingWidth: 24,
+    previewBuildingDepth: 36,
+    previewMinOpenSpacePercent: 30,
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -253,7 +255,9 @@ function UserDashboard() {
           plotDepth: Number(formData.previewPlotDepth || 60),
           floors: Number(formData.previewFloors || 2),
           floorHeight: Number(formData.previewFloorHeight || 10),
-          buildingCoverage: Number(formData.previewBuildingCoverage || 60),
+          buildingWidth: Number(formData.previewBuildingWidth || 24),
+          buildingDepth: Number(formData.previewBuildingDepth || 36),
+          minOpenSpacePercent: Number(formData.previewMinOpenSpacePercent || 30),
         },
       };
 
@@ -313,7 +317,9 @@ function UserDashboard() {
       previewPlotDepth: post.preview3D?.plotDepth || 60,
       previewFloors: post.preview3D?.floors || 2,
       previewFloorHeight: post.preview3D?.floorHeight || 10,
-      previewBuildingCoverage: post.preview3D?.buildingCoverage || 60,
+      previewBuildingWidth: post.preview3D?.buildingWidth || 24,
+      previewBuildingDepth: post.preview3D?.buildingDepth || 36,
+      previewMinOpenSpacePercent: post.preview3D?.minOpenSpacePercent || 30,
 
     });
     setEditLocationQuery(post.location?.formattedAddress || post.location?.address || "");
@@ -362,7 +368,9 @@ function UserDashboard() {
               plotDepth: Number(editFormData.previewPlotDepth || 60),
               floors: Number(editFormData.previewFloors || 2),
               floorHeight: Number(editFormData.previewFloorHeight || 10),
-              buildingCoverage: Number(editFormData.previewBuildingCoverage || 60),
+              buildingWidth: Number(editFormData.previewBuildingWidth || 24),
+              buildingDepth: Number(editFormData.previewBuildingDepth || 36),
+              minOpenSpacePercent: Number(editFormData.previewMinOpenSpacePercent || 30),
             },
           }),
         }
@@ -649,13 +657,35 @@ function UserDashboard() {
                 </div>
 
                 <div className="form-group">
-                  <label>Building Coverage (%)</label>
+                  <label>Building Width (ft)</label>
                   <input
                     type="number"
-                    name="previewBuildingCoverage"
-                    min="20"
-                    max="90"
-                    value={formData.previewBuildingCoverage}
+                    name="previewBuildingWidth"
+                    min="5"
+                    value={formData.previewBuildingWidth}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Building Depth (ft)</label>
+                  <input
+                    type="number"
+                    name="previewBuildingDepth"
+                    min="5"
+                    value={formData.previewBuildingDepth}
+                    onChange={handleChange}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Minimum Open Space (%)</label>
+                  <input
+                    type="number"
+                    name="previewMinOpenSpacePercent"
+                    min="10"
+                    max="80"
+                    value={formData.previewMinOpenSpacePercent}
                     onChange={handleChange}
                   />
                 </div>
@@ -1294,11 +1324,35 @@ function UserDashboard() {
         </div>
 
         <div className="form-group">
-          <label>Building Coverage (%)</label>
+          <label>Building Width (ft)</label>
           <input
             type="number"
-            name="previewBuildingCoverage"
-            value={editFormData.previewBuildingCoverage}
+            name="previewBuildingWidth"
+            min="5"
+            value={editFormData.previewBuildingWidth}
+            onChange={handleEditChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Building Depth (ft)</label>
+          <input
+            type="number"
+            name="previewBuildingDepth"
+            min="5"
+            value={editFormData.previewBuildingDepth}
+            onChange={handleEditChange}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Minimum Open Space (%)</label>
+          <input
+            type="number"
+            name="previewMinOpenSpacePercent"
+            min="10"
+            max="80"
+            value={editFormData.previewMinOpenSpacePercent}
             onChange={handleEditChange}
           />
         </div>

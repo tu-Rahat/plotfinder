@@ -107,7 +107,9 @@ const createLandPost = async (req, res) => {
         plotDepth: Number(preview3D?.plotDepth || 60),
         floors: Number(preview3D?.floors || 2),
         floorHeight: Number(preview3D?.floorHeight || 10),
-        buildingCoverage: Number(preview3D?.buildingCoverage || 60),
+        buildingWidth: Number(preview3D?.buildingWidth || 24),
+        buildingDepth: Number(preview3D?.buildingDepth || 36),
+        minOpenSpacePercent: Number(preview3D?.minOpenSpacePercent || 30),
       },
       status: "pending",
     });
@@ -358,7 +360,9 @@ const updateLandPostByAdmin = async (req, res) => {
       plotDepth: Number(preview3D?.plotDepth || 60),
       floors: Number(preview3D?.floors || 2),
       floorHeight: Number(preview3D?.floorHeight || 10),
-      buildingCoverage: Number(preview3D?.buildingCoverage || 60),
+      buildingWidth: Number(preview3D?.buildingWidth || 24),
+      buildingDepth: Number(preview3D?.buildingDepth || 36),
+      minOpenSpacePercent: Number(preview3D?.minOpenSpacePercent || 30),
     };
     await land.save();
 
@@ -499,7 +503,9 @@ const updateMyLandPost = async (req, res) => {
       plotDepth: Number(preview3D?.plotDepth || 60),
       floors: Number(preview3D?.floors || 2),
       floorHeight: Number(preview3D?.floorHeight || 10),
-      buildingCoverage: Number(preview3D?.buildingCoverage || 60),
+      buildingWidth: Number(preview3D?.buildingWidth || 24),
+      buildingDepth: Number(preview3D?.buildingDepth || 36),
+      minOpenSpacePercent: Number(preview3D?.minOpenSpacePercent || 30),
     };
     await land.save();
 

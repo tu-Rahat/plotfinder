@@ -146,11 +146,21 @@ const landSchema = new mongoose.Schema(
         max: 20,
         default: 10,
       },
-      buildingCoverage: {
+      buildingWidth: {
         type: Number,
-        min: 20,
-        max: 90,
-        default: 60,
+        min: 5,
+        default: 24,
+      },
+      buildingDepth: {
+        type: Number,
+        min: 5,
+        default: 36,
+      },
+      minOpenSpacePercent: {
+        type: Number,
+        min: 10,
+        max: 80,
+        default: 30,
       },
     },
 

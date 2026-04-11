@@ -8,24 +8,26 @@ function SceneContent({
   plotDepth,
   floors,
   floorHeight,
-  buildingCoverage,
+  buildingWidth,
+  buildingDepth,
+  isValidPlan,
 }) {
-  const buildingWidth = useMemo(
-    () => Math.max((plotWidth * buildingCoverage) / 100, 8),
-    [plotWidth, buildingCoverage]
+const safeBuildingWidth = useMemo(
+    () => Math.min(Math.max(Number(buildingWidth || 10), 5), plotWidth),
+    [buildingWidth, plotWidth]
   );
 
-  const buildingDepth = useMemo(
-    () => Math.max((plotDepth * buildingCoverage) / 100, 8),
-    [plotDepth, buildingCoverage]
+const safeBuildingDepth = useMemo(
+    () => Math.min(Math.max(Number(buildingDepth || 10), 5), plotDepth),
+    [buildingDepth, plotDepth]
   );
 
   const floorBlocks = Array.from({ length: floors }, (_, index) => {
     const y = floorHeight / 2 + index * floorHeight;
     const boxGeometry = new THREE.BoxGeometry(
-      buildingWidth,
+      safeBuildingWidth,
       floorHeight,
-      buildingDepth
+      safeBuildingDepth
     );
 
     return (
@@ -33,7 +35,7 @@ function SceneContent({
         <mesh castShadow receiveShadow>
           <primitive object={boxGeometry} attach="geometry" />
           <meshStandardMaterial
-            color="#cbd5e1"
+            color={isValidPlan ? "#cbd5e1" : "#fca5a5"}
             metalness={0.25}
             roughness={0.45}
           />
@@ -41,7 +43,7 @@ function SceneContent({
 
         <lineSegments>
           <edgesGeometry args={[boxGeometry]} />
-          <lineBasicMaterial color="#64748b" />
+          <lineBasicMaterial color={isValidPlan ? "#475569" : "#b91c1c"} />
         </lineSegments>
       </group>
     );
@@ -83,7 +85,7 @@ function SceneContent({
       <Html position={[0, floors * floorHeight + 4, 0]} center>
         <div
           style={{
-            background: "rgba(17, 24, 39, 0.85)",
+            background: isValidPlan ? "rgba(15, 23, 42, 0.9)" : "rgba(127, 29, 29, 0.92)",
             color: "#fff",
             padding: "6px 10px",
             borderRadius: "10px",
@@ -92,7 +94,7 @@ function SceneContent({
             whiteSpace: "nowrap",
           }}
         >
-          {floors} floor{floors > 1 ? "s" : ""}
+          {floors} floor{floors > 1 ? "s" : ""} • {isValidPlan ? "Valid plan" : "Policy exceeded"}
         </div>
       </Html>
 
@@ -107,23 +109,47 @@ function Building3DPreview({ preview3D }) {
   const savedFloors = Number(preview3D?.floors || 2);
 
   const [floors, setFloors] = useState(savedFloors);
+  const [buildingWidth, setBuildingWidth] = useState(
+    Number(preview3D?.buildingWidth || 24)
+  );
+  const [buildingDepth, setBuildingDepth] = useState(
+    Number(preview3D?.buildingDepth || 36)
+  );
 
   const plotWidth = Number(preview3D?.plotWidth || 40);
   const plotDepth = Number(preview3D?.plotDepth || 60);
   const floorHeight = Number(preview3D?.floorHeight || 10);
-  const buildingCoverage = Number(preview3D?.buildingCoverage || 60);
+  const minOpenSpacePercent = Number(preview3D?.minOpenSpacePercent || 30);
+
+  const plotArea = plotWidth * plotDepth;
+  const buildingFootprint = buildingWidth * buildingDepth;
+  const minOpenSpaceArea = (plotArea * minOpenSpacePercent) / 100;
+  const maxAllowedFootprint = plotArea - minOpenSpaceArea;
+  const remainingOpenSpace = plotArea - buildingFootprint;
+  const actualOpenSpacePercent =
+    plotArea > 0 ? (remainingOpenSpace / plotArea) * 100 : 0;
+  const totalBuiltUpArea = buildingFootprint * floors;
+  const isValidPlan =
+    buildingWidth <= plotWidth &&
+    buildingDepth <= plotDepth &&
+    buildingFootprint <= maxAllowedFootprint &&
+    remainingOpenSpace >= 0;
 
   const increaseFloors = () => setFloors((prev) => Math.min(prev + 1, 20));
   const decreaseFloors = () => setFloors((prev) => Math.max(prev - 1, 1));
-  const resetFloors = () => setFloors(savedFloors);
+  const resetFloors = () => {
+    setFloors(savedFloors);
+    setBuildingWidth(Number(preview3D?.buildingWidth || 24));
+    setBuildingDepth(Number(preview3D?.buildingDepth || 36));
+  };
 
   return (
     <div className="building-preview-card">
       <div className="building-preview-header">
         <div>
-          <h3>3D Building Preview</h3>
+          <h3>Building Capacity Preview</h3>
           <p>
-              Adjust floors to visualize building height and remaining open space on your plot.
+            Adjust block size and floors to test how much building area fits while maintaining required open space.
           </p>
         </div>
 
@@ -142,22 +168,65 @@ function Building3DPreview({ preview3D }) {
 
       <div className="building-preview-stats">
         <div className="building-preview-stat">
-          <span>Plot</span>
-          <strong>{plotWidth}ft × {plotDepth}ft</strong>
+          <span>Plot Area</span>
+          <strong>{plotArea.toLocaleString()} sqft</strong>
         </div>
         <div className="building-preview-stat">
-          <span>Floors</span>
-          <strong>{floors}</strong>
+          <span>Building Footprint</span>
+          <strong>{buildingFootprint.toLocaleString()} sqft</strong>
         </div>
         <div className="building-preview-stat">
-          <span>Floor Height</span>
-          <strong>{floorHeight}ft</strong>
+          <span>Max Allowed Footprint</span>
+          <strong>{maxAllowedFootprint.toLocaleString()} sqft</strong>
         </div>
         <div className="building-preview-stat">
-          <span>Coverage</span>
-          <strong>{buildingCoverage}%</strong>
+          <span>Total Built-up Area</span>
+          <strong>{totalBuiltUpArea.toLocaleString()} sqft</strong>
+        </div>
+        <div className="building-preview-stat">
+          <span>Open Space Left</span>
+          <strong>{remainingOpenSpace.toLocaleString()} sqft</strong>
+        </div>
+        <div className="building-preview-stat">
+          <span>Open Space %</span>
+          <strong>{actualOpenSpacePercent.toFixed(1)}%</strong>
         </div>
       </div>
+
+            <div className="building-preview-controls">
+        <div className="building-preview-control">
+          <label>Building Width (ft)</label>
+          <input
+            type="number"
+            min="5"
+            max={plotWidth}
+            value={buildingWidth}
+            onChange={(e) => setBuildingWidth(Number(e.target.value || 0))}
+          />
+        </div>
+
+        <div className="building-preview-control">
+          <label>Building Depth (ft)</label>
+          <input
+            type="number"
+            min="5"
+            max={plotDepth}
+            value={buildingDepth}
+            onChange={(e) => setBuildingDepth(Number(e.target.value || 0))}
+          />
+        </div>
+
+        <div className="building-preview-control">
+          <label>Minimum Open Space Policy</label>
+          <input type="text" value={`${minOpenSpacePercent}%`} readOnly />
+        </div>
+      </div>
+
+      {!isValidPlan && (
+        <div className="building-preview-warning">
+          This building footprint exceeds the allowed plot policy. Reduce width or depth to keep enough open space.
+        </div>
+      )}
 
       <div className="building-preview-canvas">
         <Canvas camera={{ position: [80, 60, 80], fov: 40 }} shadows>
@@ -166,7 +235,9 @@ function Building3DPreview({ preview3D }) {
             plotDepth={plotDepth}
             floors={floors}
             floorHeight={floorHeight}
-            buildingCoverage={buildingCoverage}
+            buildingWidth={buildingWidth}
+            buildingDepth={buildingDepth}
+            isValidPlan={isValidPlan}
           />
         </Canvas>
       </div>
