@@ -301,7 +301,7 @@
 
 .building-preview-actions button {
   border: none;
-  background: #16a34a;
+  background: #0f172a;  /* dark professional */
   color: #fff;
   padding: 10px 14px;
   border-radius: 10px;
@@ -310,7 +310,7 @@
 }
 
 .building-preview-actions button:hover {
-  background: #15803d;
+  background: #1e293b;
 }
 
 .building-preview-stats {

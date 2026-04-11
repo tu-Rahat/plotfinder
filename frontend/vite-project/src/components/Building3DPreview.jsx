@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, Html } from "@react-three/drei";
 
@@ -21,30 +22,63 @@ function SceneContent({
 
   const floorBlocks = Array.from({ length: floors }, (_, index) => {
     const y = floorHeight / 2 + index * floorHeight;
+    const boxGeometry = new THREE.BoxGeometry(
+      buildingWidth,
+      floorHeight,
+      buildingDepth
+    );
+
     return (
-      <mesh key={index} position={[0, y, 0]} castShadow receiveShadow>
-        <boxGeometry args={[buildingWidth, floorHeight, buildingDepth]} />
-        <meshStandardMaterial color={index % 2 === 0 ? "#86efac" : "#4ade80"} />
-      </mesh>
+      <group key={index} position={[0, y, 0]}>
+        <mesh castShadow receiveShadow>
+          <primitive object={boxGeometry} attach="geometry" />
+          <meshStandardMaterial
+            color="#cbd5e1"
+            metalness={0.25}
+            roughness={0.45}
+          />
+        </mesh>
+
+        <lineSegments>
+          <edgesGeometry args={[boxGeometry]} />
+          <lineBasicMaterial color="#64748b" />
+        </lineSegments>
+      </group>
     );
   });
 
   return (
     <>
       <ambientLight intensity={0.7} />
-      <directionalLight position={[20, 30, 15]} intensity={1.2} castShadow />
+      <directionalLight
+        position={[50, 80, 40]}
+        intensity={1.5}
+        castShadow
+      />
 
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+{/* Outer area (road/surroundings) */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
         <planeGeometry args={[plotWidth + 30, plotDepth + 30]} />
-        <meshStandardMaterial color="#e5e7eb" />
+        <meshStandardMaterial color="#e2e8f0" />
       </mesh>
 
+{/* Plot area (your land) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
         <planeGeometry args={[plotWidth, plotDepth]} />
-        <meshStandardMaterial color="#d1fae5" />
+        <meshStandardMaterial color="#bbf7d0" />
       </mesh>
 
+      <lineSegments>
+        <edgesGeometry args={[new THREE.BoxGeometry(plotWidth, 0.1, plotDepth)]} />
+        <lineBasicMaterial color="#1e293b" />
+      </lineSegments>
+
       {floorBlocks}
+    <Html position={[0, -1, plotDepth / 2 + 5]}>
+      <div style={{ fontSize: "12px", color: "#111" }}>
+        Road Side
+      </div>
+    </Html>
 
       <Html position={[0, floors * floorHeight + 4, 0]} center>
         <div
@@ -89,7 +123,7 @@ function Building3DPreview({ preview3D }) {
         <div>
           <h3>3D Building Preview</h3>
           <p>
-            Basic conceptual massing preview for this land.
+              Adjust floors to visualize building height and remaining open space on your plot.
           </p>
         </div>
 
@@ -126,7 +160,7 @@ function Building3DPreview({ preview3D }) {
       </div>
 
       <div className="building-preview-canvas">
-        <Canvas camera={{ position: [55, 45, 55], fov: 45 }} shadows>
+        <Canvas camera={{ position: [80, 60, 80], fov: 40 }} shadows>
           <SceneContent
             plotWidth={plotWidth}
             plotDepth={plotDepth}
