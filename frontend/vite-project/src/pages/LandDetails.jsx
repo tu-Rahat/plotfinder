@@ -5,6 +5,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "./LandDetails.css";
 import NearbyPlaces from "../components/NearbyPlaces";
+import Building3DPreview from "../components/Building3DPreview";
 
 // Fix for default marker icons in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -314,6 +315,12 @@ function LandDetails() {
 
           {hasMapLocation && (
             <NearbyPlaces latitude={latitude} longitude={longitude} />
+          )}
+
+          {land.preview3D?.enabled && (
+            <div className="land-details-section">
+              <Building3DPreview preview3D={land.preview3D} />
+            </div>
           )}
 
 
