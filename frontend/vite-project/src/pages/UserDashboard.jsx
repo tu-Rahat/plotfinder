@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./UserDashboard.css";
-
+import PlotShapeEditor from "../components/PlotShapeEditor";
 function UserDashboard() {
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
@@ -633,6 +633,20 @@ function UserDashboard() {
                     <option value="polygon">Custom Plot</option>
                   </select>
             </div>
+
+            {formData.preview3DEnabled && formData.previewShapeType === "polygon" && (
+              <div className="form-group full-width">
+                <PlotShapeEditor
+                  points={formData.previewPlotPolygon}
+                  onChange={(newPoints) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      previewPlotPolygon: newPoints,
+                    }))
+                  }
+                />
+              </div>
+            )}
 
             {formData.preview3DEnabled && (
               <>
@@ -1321,25 +1335,29 @@ function UserDashboard() {
 
     {editFormData.preview3DEnabled && (
       <>
-        <div className="form-group">
-          <label>Plot Width (ft)</label>
-          <input
-            type="number"
-            name="previewPlotWidth"
-            value={editFormData.previewPlotWidth}
-            onChange={handleEditChange}
-          />
-        </div>
+    {formData.preview3DEnabled && formData.previewShapeType === "rectangle" && (
+    <>
+    <div className="form-group">
+      <label>Plot Width (ft)</label>
+      <input
+        type="number"
+        name="previewPlotWidth"
+        value={formData.previewPlotWidth}
+        onChange={handleChange}
+      />
+    </div>
 
-        <div className="form-group">
-          <label>Plot Depth (ft)</label>
-          <input
-            type="number"
-            name="previewPlotDepth"
-            value={editFormData.previewPlotDepth}
-            onChange={handleEditChange}
-          />
-        </div>
+    <div className="form-group">
+      <label>Plot Depth (ft)</label>
+      <input
+        type="number"
+        name="previewPlotDepth"
+        value={formData.previewPlotDepth}
+        onChange={handleChange}
+      />
+    </div>
+  </>
+)}
 
         <div className="form-group">
           <label>Default Floors</label>

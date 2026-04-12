@@ -538,3 +538,82 @@
     width: 100%;
   }
 }
+
+.plot-editor-card {
+  background: #f8fafc;
+  border: 1px solid #dbe4ee;
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.plot-editor-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.plot-editor-header h4 {
+  margin: 0 0 6px;
+  color: #0f172a;
+}
+
+.plot-editor-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.plot-editor-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.plot-editor-actions button {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #0f172a;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.plot-editor-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.plot-editor-board {
+  width: 320px;
+  max-width: 100%;
+  border: 1px dashed #94a3b8;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ffffff;
+  cursor: crosshair;
+}
+
+.plot-editor-board svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.plot-editor-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  color: #475569;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .plot-editor-header,
+  .plot-editor-footer {
+    flex-direction: column;
+  }
+}
