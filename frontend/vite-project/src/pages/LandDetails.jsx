@@ -319,7 +319,12 @@ function LandDetails() {
 
           {land.preview3D?.enabled && (
             <div className="land-details-section">
-              <Building3DPreview preview3D={land.preview3D} />
+              <Building3DPreview
+                preview3D={{
+                  ...land.preview3D,
+                  plotArea: land.landSizeSqft
+                }}
+              />
             </div>
           )}
 
