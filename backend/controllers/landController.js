@@ -103,6 +103,8 @@ const createLandPost = async (req, res) => {
       priceNegotiable,
       preview3D: {
         enabled: Boolean(preview3D?.enabled),
+        shapeType: preview3D?.shapeType || "rectangle",
+        plotPolygon: Array.isArray(preview3D?.plotPolygon) ? preview3D.plotPolygon : [],
         plotWidth: Number(preview3D?.plotWidth || 40),
         plotDepth: Number(preview3D?.plotDepth || 60),
         floors: Number(preview3D?.floors || 2),
@@ -356,6 +358,8 @@ const updateLandPostByAdmin = async (req, res) => {
     ).toFixed(2);
     land.preview3D = {
       enabled: Boolean(preview3D?.enabled),
+      shapeType: preview3D?.shapeType || "rectangle",
+      plotPolygon: Array.isArray(preview3D?.plotPolygon) ? preview3D.plotPolygon : [],
       plotWidth: Number(preview3D?.plotWidth || 40),
       plotDepth: Number(preview3D?.plotDepth || 60),
       floors: Number(preview3D?.floors || 2),
@@ -499,6 +503,8 @@ const updateMyLandPost = async (req, res) => {
     ).toFixed(2);
     land.preview3D = {
       enabled: Boolean(preview3D?.enabled),
+      shapeType: preview3D?.shapeType || "rectangle",
+      plotPolygon: Array.isArray(preview3D?.plotPolygon) ? preview3D.plotPolygon : [],
       plotWidth: Number(preview3D?.plotWidth || 40),
       plotDepth: Number(preview3D?.plotDepth || 60),
       floors: Number(preview3D?.floors || 2),
