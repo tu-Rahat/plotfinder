@@ -116,8 +116,10 @@ function Building3DPreview({ preview3D }) {
     Number(preview3D?.buildingDepth || 36)
   );
 
-  const plotWidth = Number(preview3D?.plotWidth || 40);
-  const plotDepth = Number(preview3D?.plotDepth || 60);
+  const plotAreaFromLand = Number(preview3D?.plotArea || 0);
+
+  const plotWidth = Math.sqrt(plotAreaFromLand || 1600);
+  const plotDepth = plotWidth > 0 ? plotAreaFromLand / plotWidth : 40;
   const floorHeight = Number(preview3D?.floorHeight || 10);
   const minOpenSpacePercent = Number(preview3D?.minOpenSpacePercent || 30);
 
