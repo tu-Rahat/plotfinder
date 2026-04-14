@@ -542,8 +542,8 @@
 .plot-editor-card {
   background: #f8fafc;
   border: 1px solid #dbe4ee;
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 18px;
 }
 
 .plot-editor-header {
@@ -557,12 +557,14 @@
 .plot-editor-header h4 {
   margin: 0 0 6px;
   color: #0f172a;
+  font-size: 18px;
 }
 
 .plot-editor-header p {
   margin: 0;
   color: #64748b;
   font-size: 14px;
+  max-width: 520px;
 }
 
 .plot-editor-actions {
@@ -575,10 +577,14 @@
   border: 1px solid #cbd5e1;
   background: #fff;
   color: #0f172a;
-  padding: 8px 12px;
+  padding: 9px 12px;
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.plot-editor-actions button:hover {
+  background: #f1f5f9;
 }
 
 .plot-editor-actions button:disabled {
@@ -587,13 +593,14 @@
 }
 
 .plot-editor-board {
-  width: 320px;
+  width: 420px;
   max-width: 100%;
-  border: 1px dashed #94a3b8;
-  border-radius: 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 16px;
   overflow: hidden;
   background: #ffffff;
-  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
 }
 
 .plot-editor-board svg {
