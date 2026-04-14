@@ -124,6 +124,26 @@ const landSchema = new mongoose.Schema(
         type: Boolean,
         default: false,
       },
+      shapeType: {
+        type: String,
+        enum: ["rectangle", "polygon"],
+        default: "rectangle",
+      },
+      plotPolygon: {
+        type: [
+          {
+            x: {
+              type: Number,
+              required: true,
+            },
+            y: {
+              type: Number,
+              required: true,
+            },
+          },
+        ],
+        default: [],
+      },
       plotWidth: {
         type: Number,
         min: 10,

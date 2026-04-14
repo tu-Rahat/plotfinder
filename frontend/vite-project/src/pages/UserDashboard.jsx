@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "./UserDashboard.css";
-
+import PlotShapeEditor from "../components/PlotShapeEditor";
 function UserDashboard() {
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
@@ -29,6 +29,8 @@ function UserDashboard() {
     longitude: "",
     formattedAddress: "",
     preview3DEnabled: false,
+    previewShapeType: "rectangle",
+    previewPlotPolygon: [],
     previewPlotWidth: 40,
     previewPlotDepth: 60,
     previewFloors: 2,
@@ -251,6 +253,10 @@ function UserDashboard() {
         sellerPhone: formData.sellerPhone,
         preview3D: {
           enabled: formData.preview3DEnabled,
+          shapeType: formData.previewShapeType || "rectangle",
+          plotPolygon: Array.isArray(formData.previewPlotPolygon)
+            ? formData.previewPlotPolygon
+            : [],
           plotWidth: Number(formData.previewPlotWidth || 40),
           plotDepth: Number(formData.previewPlotDepth || 60),
           floors: Number(formData.previewFloors || 2),
@@ -313,6 +319,10 @@ function UserDashboard() {
       longitude: post.location?.longitude || "",
       formattedAddress: post.location?.formattedAddress || "",
       preview3DEnabled: post.preview3D?.enabled || false,
+      previewShapeType: post.preview3D?.shapeType || "rectangle",
+      previewPlotPolygon: Array.isArray(post.preview3D?.plotPolygon)
+        ? post.preview3D.plotPolygon
+        : [],
       previewPlotWidth: post.preview3D?.plotWidth || 40,
       previewPlotDepth: post.preview3D?.plotDepth || 60,
       previewFloors: post.preview3D?.floors || 2,
@@ -364,6 +374,10 @@ function UserDashboard() {
             sellerPhone: editFormData.sellerPhone,
             preview3D: {
               enabled: editFormData.preview3DEnabled,
+              shapeType: editFormData.previewShapeType || "rectangle",
+              plotPolygon: Array.isArray(editFormData.previewPlotPolygon)
+                ? editFormData.previewPlotPolygon
+                : [],
               plotWidth: Number(editFormData.previewPlotWidth || 40),
               plotDepth: Number(editFormData.previewPlotDepth || 60),
               floors: Number(editFormData.previewFloors || 2),
@@ -607,6 +621,32 @@ function UserDashboard() {
                 Enable 3D building preview for this land
               </label>
             </div>
+
+            <div className="form-group">
+                  <label>Plot Shape Type</label>
+                  <select
+                    name="previewShapeType"
+                    value={formData.previewShapeType}
+                    onChange={handleChange}
+                  >
+                    <option value="rectangle">Rectangle</option>
+                    <option value="polygon">Custom Plot</option>
+                  </select>
+            </div>
+
+            {formData.preview3DEnabled && formData.previewShapeType === "polygon" && (
+              <div className="form-group full-width">
+                <PlotShapeEditor
+                  points={formData.previewPlotPolygon}
+                  onChange={(newPoints) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      previewPlotPolygon: newPoints,
+                    }))
+                  }
+                />
+              </div>
+            )}
 
             {formData.preview3DEnabled && (
               <>
@@ -1281,27 +1321,43 @@ function UserDashboard() {
       </label>
     </div>
 
-    {editFormData.preview3DEnabled && (
-      <>
         <div className="form-group">
-          <label>Plot Width (ft)</label>
-          <input
-            type="number"
-            name="previewPlotWidth"
-            value={editFormData.previewPlotWidth}
+          <label>Plot Shape Type</label>
+          <select
+            name="previewShapeType"
+            value={editFormData.previewShapeType}
             onChange={handleEditChange}
-          />
+          >
+            <option value="rectangle">Rectangle</option>
+            <option value="polygon">Custom Plot</option>
+          </select>
         </div>
 
-        <div className="form-group">
-          <label>Plot Depth (ft)</label>
-          <input
-            type="number"
-            name="previewPlotDepth"
-            value={editFormData.previewPlotDepth}
-            onChange={handleEditChange}
-          />
-        </div>
+    {editFormData.preview3DEnabled && (
+      <>
+    {formData.preview3DEnabled && formData.previewShapeType === "rectangle" && (
+    <>
+    <div className="form-group">
+      <label>Plot Width (ft)</label>
+      <input
+        type="number"
+        name="previewPlotWidth"
+        value={formData.previewPlotWidth}
+        onChange={handleChange}
+      />
+    </div>
+
+    <div className="form-group">
+      <label>Plot Depth (ft)</label>
+      <input
+        type="number"
+        name="previewPlotDepth"
+        value={formData.previewPlotDepth}
+        onChange={handleChange}
+      />
+    </div>
+  </>
+)}
 
         <div className="form-group">
           <label>Default Floors</label>
