@@ -92,6 +92,26 @@ const safeBuildingDepth = useMemo(
     };
   }, [normalizedPolygonPoints, plotWidth, plotDepth]);
 
+  const polygonCenter = useMemo(() => {
+    if (!normalizedPolygonPoints.length) {
+      return { x: 0, z: 0 };
+    }
+
+    const sum = normalizedPolygonPoints.reduce(
+      (acc, point) => {
+        acc.x += point.x;
+        acc.z += point.z;
+        return acc;
+      },
+      { x: 0, z: 0 }
+    );
+
+    return {
+      x: sum.x / normalizedPolygonPoints.length,
+      z: sum.z / normalizedPolygonPoints.length,
+    };
+  }, [normalizedPolygonPoints]);
+
   const floorBlocks = Array.from({ length: floors }, (_, index) => {
     const y = floorHeight / 2 + index * floorHeight;
     const boxGeometry = new THREE.BoxGeometry(
@@ -101,7 +121,14 @@ const safeBuildingDepth = useMemo(
     );
 
     return (
-      <group key={index} position={[0, y, 0]}>
+            <group
+        key={index}
+        position={[
+          shapeType === "polygon" ? polygonCenter.x : 0,
+          y,
+          shapeType === "polygon" ? polygonCenter.z : 0,
+        ]}
+      >
         <mesh castShadow receiveShadow>
           <primitive object={boxGeometry} attach="geometry" />
           <meshStandardMaterial
