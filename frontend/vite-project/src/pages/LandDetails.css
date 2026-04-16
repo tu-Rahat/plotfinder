@@ -421,3 +421,56 @@
   border: 1px solid #bfdbfe;
   font-weight: 600;
 }
+.resource-estimate-card {
+  margin-top: 18px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.resource-estimate-header h3 {
+  margin: 0 0 6px;
+  color: #111827;
+}
+
+.resource-estimate-header p {
+  margin: 0 0 16px;
+  color: #6b7280;
+}
+
+.resource-estimate-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.resource-estimate-item {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.resource-estimate-item span {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.resource-estimate-item strong {
+  color: #111827;
+}
+
+.resource-estimate-note {
+  margin-top: 14px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .resource-estimate-grid {
+    grid-template-columns: 1fr;
+  }
+}
