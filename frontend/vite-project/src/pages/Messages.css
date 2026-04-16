@@ -1,0 +1,142 @@
+.messages-page {
+  padding: 24px;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.messages-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.conversation-sidebar,
+.chat-panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.conversation-sidebar-header h2,
+.chat-panel-header h2 {
+  margin: 0 0 6px;
+  color: #111827;
+}
+
+.conversation-sidebar-header p,
+.chat-panel-header p,
+.messages-info,
+.empty-chat-state p {
+  color: #6b7280;
+}
+
+.conversation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.conversation-item {
+  text-align: left;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  border-radius: 14px;
+  padding: 14px;
+  cursor: pointer;
+}
+
+.conversation-item.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.conversation-item h3 {
+  margin: 0 0 6px;
+  color: #111827;
+  font-size: 16px;
+}
+
+.conversation-item p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 75vh;
+}
+
+.chat-messages {
+  flex: 1;
+  margin: 18px 0;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: 14px;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.message-bubble {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.message-sender {
+  margin: 0 0 6px;
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.message-time {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.chat-input-form {
+  display: flex;
+  gap: 12px;
+}
+
+.chat-input-form input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 14px;
+}
+
+.chat-input-form button {
+  border: none;
+  background: #111827;
+  color: #ffffff;
+  padding: 12px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.empty-chat-state {
+  margin: auto;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .messages-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-panel {
+    min-height: auto;
+  }
+}

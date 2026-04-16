@@ -6,6 +6,7 @@ const landRoutes = require("./routes/landRoutes");
 const buyRequestRoutes = require("./routes/buyRequestRoutes");
 const shortlistRoutes = require("./routes/shortlistRoutes");
 const placeRoutes = require("./routes/placeRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use("/api/chat", chatRoutes);
 app.use("/api/lands", landRoutes);
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/buy-requests", buyRequestRoutes);
