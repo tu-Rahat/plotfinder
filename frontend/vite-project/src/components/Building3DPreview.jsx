@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, Html } from "@react-three/drei";
+import ResourceEstimateCard from "./ResourceEstimateCard";
 
 function calculatePolygonArea(points = []) {
   if (!Array.isArray(points) || points.length < 3) return 0;
@@ -434,7 +435,11 @@ const polygonScaleFactor =
             />  
         </Canvas>
       </div>
-
+      <ResourceEstimateCard
+        buildingWidth={buildingWidth}
+        buildingDepth={buildingDepth}
+        floors={floors}
+      />
       <p className="building-preview-note">
         This is a simple visual preview only, not a final engineering or architectural design.
       </p>
