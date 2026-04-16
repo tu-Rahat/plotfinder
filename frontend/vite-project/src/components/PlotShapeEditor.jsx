@@ -43,7 +43,7 @@ function denormalizePoints(displayPoints) {
   }));
 }
 
-function PlotShapeEditor({ points = [], onChange }) {
+function PlotShapeEditor({ points = [], onChange, targetAreaSqft = 0 }) {
   const [displayPoints, setDisplayPoints] = useState(() =>
     points.length
       ? normalizePoints(points)
@@ -63,9 +63,31 @@ function PlotShapeEditor({ points = [], onChange }) {
       setDisplayPoints(normalizePoints(points));
     }
   }, [points]);
-  const rawPoints = useMemo(() => denormalizePoints(displayPoints), [displayPoints]);
 
-  const areaScaleFactor = 1;
+  const rawPoints = useMemo(
+  () => denormalizePoints(displayPoints),
+  [displayPoints]
+);
+
+  const rawArea = useMemo(() => {
+  if (rawPoints.length < 3) return 0;
+
+  let area = 0;
+  for (let i = 0; i < rawPoints.length; i++) {
+    const curr = rawPoints[i];
+    const next = rawPoints[(i + 1) % rawPoints.length];
+    area += curr.x * next.y - next.x * curr.y;
+  }
+
+  return Math.abs(area) / 2;
+}, [rawPoints]);
+
+  const areaScaleFactor = useMemo(() => {
+  if (!targetAreaSqft || !rawArea) return 1;
+  return Math.sqrt(targetAreaSqft / rawArea);
+}, [targetAreaSqft, rawArea]);
+
+
   const polygonPath = useMemo(() => {
     if (displayPoints.length < 2) return "";
     return displayPoints

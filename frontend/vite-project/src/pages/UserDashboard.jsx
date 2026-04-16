@@ -649,6 +649,7 @@ function UserDashboard() {
               <div className="form-group full-width">
                 <PlotShapeEditor
                   points={formData.previewPlotPolygon}
+                  targetAreaSqft={Number(formData.landSizeSqft || 0)}
                   onChange={(newPoints) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -1347,6 +1348,7 @@ function UserDashboard() {
   <div className="form-group full-width">
     <PlotShapeEditor
       points={editFormData.previewPlotPolygon}
+      targetAreaSqft={Number(editFormData.landSizeSqft || 0)}
       onChange={(newPoints) =>
         setEditFormData((prev) => ({
           ...prev,
