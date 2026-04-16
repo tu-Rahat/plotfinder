@@ -412,3 +412,12 @@
     grid-template-columns: 1fr;
   }
 }
+.building-preview-shape-note {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  font-weight: 600;
+}

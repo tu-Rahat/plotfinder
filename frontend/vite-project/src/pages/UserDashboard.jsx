@@ -240,7 +240,12 @@ function UserDashboard() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (formData.preview3DEnabled && formData.previewShapeType === "polygon") {
+      if (!formData.previewPlotPolygon || formData.previewPlotPolygon.length < 3) {
+        alert("Please draw at least 3 points to define a valid plot shape.");
+        return;
+    }
+  }
     setMessage("");
     setErrorMessage("");
 
@@ -356,6 +361,12 @@ function UserDashboard() {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+      if (editFormData.preview3DEnabled && editFormData.previewShapeType === "polygon") {
+        if (!editFormData.previewPlotPolygon || editFormData.previewPlotPolygon.length < 3) {
+          alert("Please draw at least 3 points to define a valid plot shape.");
+          return;
+    }
+  }
     setMessage("");
     setErrorMessage("");
     setSubmittingEdit(true);
@@ -1332,18 +1343,32 @@ function UserDashboard() {
             <option value="polygon">Custom Plot</option>
           </select>
         </div>
-
+{editFormData.preview3DEnabled && editFormData.previewShapeType === "polygon" && (
+  <div className="form-group full-width">
+    <PlotShapeEditor
+      points={editFormData.previewPlotPolygon}
+      onChange={(newPoints) =>
+        setEditFormData((prev) => ({
+          ...prev,
+          previewPlotPolygon: newPoints,
+        }))
+      }
+    />
+  </div>
+)}
     {editFormData.preview3DEnabled && (
       <>
     {formData.preview3DEnabled && formData.previewShapeType === "rectangle" && (
     <>
+{editFormData.preview3DEnabled && editFormData.previewShapeType === "rectangle" && (
+  <>
     <div className="form-group">
       <label>Plot Width (ft)</label>
       <input
         type="number"
         name="previewPlotWidth"
-        value={formData.previewPlotWidth}
-        onChange={handleChange}
+        value={editFormData.previewPlotWidth}
+        onChange={handleEditChange}
       />
     </div>
 
@@ -1352,10 +1377,12 @@ function UserDashboard() {
       <input
         type="number"
         name="previewPlotDepth"
-        value={formData.previewPlotDepth}
-        onChange={handleChange}
+        value={editFormData.previewPlotDepth}
+        onChange={handleEditChange}
       />
     </div>
+  </>
+)}
   </>
 )}
 
