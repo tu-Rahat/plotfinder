@@ -21,12 +21,14 @@ function SceneContent({
   plotWidth,
   plotDepth,
   plotPolygon,
+  polygonScaleFactor,
   floors,
   floorHeight,
   buildingWidth,
   buildingDepth,
   isValidPlan,
 }) {
+
 const safeBuildingWidth = useMemo(
     () => Math.min(Math.max(Number(buildingWidth || 10), 5), plotWidth),
     [buildingWidth, plotWidth]
@@ -54,10 +56,10 @@ const safeBuildingDepth = useMemo(
     const polygonDepth = Math.max(maxY - minY, 1);
 
     return plotPolygon.map((point) => ({
-      x: point.x - (minX + polygonWidth / 2),
-      z: point.y - (minY + polygonDepth / 2),
+      x: (point.x - (minX + polygonWidth / 2)) * polygonScaleFactor,
+      z: (point.y - (minY + polygonDepth / 2)) * polygonScaleFactor,
     }));
-  }, [shapeType, plotPolygon]);
+  }, [shapeType, plotPolygon, polygonScaleFactor]);
 
     const polygonShape = useMemo(() => {
     if (normalizedPolygonPoints.length < 3) return null;
@@ -254,21 +256,25 @@ const plotPolygon = Array.isArray(preview3D?.plotPolygon)
 
 const plotAreaFromLand = Number(preview3D?.plotArea || 0);
 
-// fallback rectangle
+// rectangle fallback
 const plotWidth = Math.sqrt(plotAreaFromLand || 1600);
 const plotDepth = plotWidth > 0 ? plotAreaFromLand / plotWidth : 40;
 
 const floorHeight = Number(preview3D?.floorHeight || 10);
 const minOpenSpacePercent = Number(preview3D?.minOpenSpacePercent || 30);
 
-// ✅ polygon area support
-const polygonArea = calculatePolygonArea(plotPolygon);
+const rawPolygonArea = calculatePolygonArea(plotPolygon);
 
 const plotArea =
-  shapeType === "polygon" && polygonArea > 0
-    ? polygonArea
+  shapeType === "polygon"
+    ? (plotAreaFromLand > 0 ? plotAreaFromLand : rawPolygonArea)
     : plotWidth * plotDepth;
-  const buildingFootprint = buildingWidth * buildingDepth;
+
+const polygonScaleFactor =
+  shapeType === "polygon" && rawPolygonArea > 0 && plotArea > 0
+    ? Math.sqrt(plotArea / rawPolygonArea)
+    : 1;  const buildingFootprint = buildingWidth * buildingDepth;
+
   const minOpenSpaceArea = (plotArea * minOpenSpacePercent) / 100;
   const maxAllowedFootprint = plotArea - minOpenSpaceArea;
   const remainingOpenSpace = plotArea - buildingFootprint;
@@ -387,17 +393,18 @@ const plotArea =
 
       <div className="building-preview-canvas">
         <Canvas camera={{ position: [70, 95, 70], fov: 38 }} shadows>
-          <SceneContent
-            shapeType={shapeType}
-            plotWidth={plotWidth}
-            plotDepth={plotDepth}
-            plotPolygon={plotPolygon}
-            floors={floors}
-            floorHeight={floorHeight}
-            buildingWidth={buildingWidth}
-            buildingDepth={buildingDepth}
-            isValidPlan={isValidPlan}
-          />
+            <SceneContent
+              shapeType={shapeType}
+              plotWidth={plotWidth}
+              plotDepth={plotDepth}
+              plotPolygon={plotPolygon}
+              polygonScaleFactor={polygonScaleFactor}
+              floors={floors}
+              floorHeight={floorHeight}
+              buildingWidth={buildingWidth}
+              buildingDepth={buildingDepth}
+              isValidPlan={isValidPlan}
+            />  
         </Canvas>
       </div>
 
