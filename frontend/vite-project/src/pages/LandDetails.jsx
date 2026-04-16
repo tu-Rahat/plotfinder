@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -18,6 +18,7 @@ L.Icon.Default.mergeOptions({
 
 function LandDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
 
@@ -182,7 +183,47 @@ function LandDetails() {
   if (!land) {
     return <p className="land-details-message">Land not found.</p>;
   }
+  const handleChatWithSeller = async () => {
+    const token = localStorage.getItem("token");
+    const storedUser = JSON.parse(localStorage.getItem("user"));
 
+    if (!token || !storedUser) {
+      navigate("/login");
+      return;
+    }
+
+    if (storedUser.role !== "user") {
+      return;
+    }
+
+    if (land?.sellerId && storedUser.id === land.sellerId) {
+      alert("You cannot chat on your own land post.");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:5000/api/chat/conversations", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          landId: land._id,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to open chat");
+      }
+
+      navigate("/messages");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
   return (
     <div className="land-details-page">
       <div className="land-details-grid">
@@ -450,9 +491,19 @@ function LandDetails() {
             {requestMessage && <p className="success-message">{requestMessage}</p>}
             {requestError && <p className="error-message">{requestError}</p>}
 
-            <button type="submit" className="request-submit-btn">
-              Submit Buy Request
-            </button>
+              <button type="submit" className="request-submit-btn">
+                Submit Buy Request
+              </button>
+
+                {storedUser?.role === "user" && (
+                  <button
+                    type="button"
+                    className="chat-seller-btn"
+                    onClick={handleChatWithSeller}
+                  >
+                    Chat with Seller
+                  </button>
+                )}
           </form>
         </div>
       </div>
