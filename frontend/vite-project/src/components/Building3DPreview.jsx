@@ -3,15 +3,32 @@ import * as THREE from "three";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, Html } from "@react-three/drei";
 
+function calculatePolygonArea(points = []) {
+  if (!Array.isArray(points) || points.length < 3) return 0;
+
+  let area = 0;
+
+  for (let i = 0; i < points.length; i += 1) {
+    const current = points[i];
+    const next = points[(i + 1) % points.length];
+    area += current.x * next.y - next.x * current.y;
+  }
+
+  return Math.abs(area) / 2;
+}
 function SceneContent({
+  shapeType,
   plotWidth,
   plotDepth,
+  plotPolygon,
+  polygonScaleFactor,
   floors,
   floorHeight,
   buildingWidth,
   buildingDepth,
   isValidPlan,
 }) {
+
 const safeBuildingWidth = useMemo(
     () => Math.min(Math.max(Number(buildingWidth || 10), 5), plotWidth),
     [buildingWidth, plotWidth]
@@ -22,6 +39,79 @@ const safeBuildingDepth = useMemo(
     [buildingDepth, plotDepth]
   );
 
+  const normalizedPolygonPoints = useMemo(() => {
+    if (shapeType !== "polygon" || !Array.isArray(plotPolygon) || plotPolygon.length < 3) {
+      return [];
+    }
+
+    const xs = plotPolygon.map((p) => p.x);
+    const ys = plotPolygon.map((p) => p.y);
+
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+
+    const polygonWidth = Math.max(maxX - minX, 1);
+    const polygonDepth = Math.max(maxY - minY, 1);
+
+    return plotPolygon.map((point) => ({
+      x: (point.x - (minX + polygonWidth / 2)) * polygonScaleFactor,
+      z: (point.y - (minY + polygonDepth / 2)) * polygonScaleFactor,
+    }));
+  }, [shapeType, plotPolygon, polygonScaleFactor]);
+
+    const polygonShape = useMemo(() => {
+    if (normalizedPolygonPoints.length < 3) return null;
+
+    const shape = new THREE.Shape();
+    shape.moveTo(normalizedPolygonPoints[0].x, normalizedPolygonPoints[0].z);
+
+    for (let i = 1; i < normalizedPolygonPoints.length; i += 1) {
+      shape.lineTo(normalizedPolygonPoints[i].x, normalizedPolygonPoints[i].z);
+    }
+
+    shape.lineTo(normalizedPolygonPoints[0].x, normalizedPolygonPoints[0].z);
+    return shape;
+  }, [normalizedPolygonPoints]);
+
+    const polygonBounds = useMemo(() => {
+    if (!normalizedPolygonPoints.length) {
+      return {
+        width: plotWidth,
+        depth: plotDepth,
+      };
+    }
+
+    const xs = normalizedPolygonPoints.map((p) => p.x);
+    const zs = normalizedPolygonPoints.map((p) => p.z);
+
+    return {
+      width: Math.max(...xs) - Math.min(...xs),
+      depth: Math.max(...zs) - Math.min(...zs),
+    };
+  }, [normalizedPolygonPoints, plotWidth, plotDepth]);
+
+  const polygonCenter = useMemo(() => {
+    if (!normalizedPolygonPoints.length) {
+      return { x: 0, z: 0 };
+    }
+
+    const sum = normalizedPolygonPoints.reduce(
+      (acc, point) => {
+        acc.x += point.x;
+        acc.z += point.z;
+        return acc;
+      },
+      { x: 0, z: 0 }
+    );
+
+    return {
+      x: sum.x / normalizedPolygonPoints.length,
+      z: sum.z / normalizedPolygonPoints.length,
+    };
+  }, [normalizedPolygonPoints]);
+
   const floorBlocks = Array.from({ length: floors }, (_, index) => {
     const y = floorHeight / 2 + index * floorHeight;
     const boxGeometry = new THREE.BoxGeometry(
@@ -31,7 +121,14 @@ const safeBuildingDepth = useMemo(
     );
 
     return (
-      <group key={index} position={[0, y, 0]}>
+            <group
+        key={index}
+        position={[
+          shapeType === "polygon" ? polygonCenter.x : 0,
+          y,
+          shapeType === "polygon" ? polygonCenter.z : 0,
+        ]}
+      >
         <mesh castShadow receiveShadow>
           <primitive object={boxGeometry} attach="geometry" />
           <meshStandardMaterial
@@ -59,24 +156,81 @@ const safeBuildingDepth = useMemo(
       />
 
 {/* Outer area (road/surroundings) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-        <planeGeometry args={[plotWidth + 30, plotDepth + 30]} />
-        <meshStandardMaterial color="#e2e8f0" />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry
+          args={[
+            (shapeType === "polygon" ? polygonBounds.width : plotWidth) + 30,
+            (shapeType === "polygon" ? polygonBounds.depth : plotDepth) + 30,
+          ]}
+        />
+        <meshStandardMaterial color="#f1f5f9" />
       </mesh>
 
-{/* Plot area (your land) */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-        <planeGeometry args={[plotWidth, plotDepth]} />
-        <meshStandardMaterial color="#bbf7d0" />
-      </mesh>
+{shapeType === "polygon" && polygonShape ? (
+  <>
+    {/* Polygon land */}
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.12, 0]} receiveShadow>
+      <shapeGeometry args={[polygonShape]} />
+      <meshStandardMaterial
+        color="#86efac"
+        side={THREE.DoubleSide}
+        transparent
+        opacity={0.9}
+      />
+    </mesh>
 
-      <lineSegments>
-        <edgesGeometry args={[new THREE.BoxGeometry(plotWidth, 0.1, plotDepth)]} />
-        <lineBasicMaterial color="#1e293b" />
-      </lineSegments>
+    {/* Polygon corner markers */}
+    {normalizedPolygonPoints.map((point, index) => (
+      <mesh key={index} position={[point.x, 0.4, point.z]} castShadow>
+        <sphereGeometry args={[1.6, 16, 16]} />
+        <meshStandardMaterial color="#166534" />
+      </mesh>
+    ))}
+
+    {/* Polygon border lines */}
+    {normalizedPolygonPoints.map((point, index) => {
+      const next = normalizedPolygonPoints[(index + 1) % normalizedPolygonPoints.length];
+      const dx = next.x - point.x;
+      const dz = next.z - point.z;
+      const length = Math.sqrt(dx * dx + dz * dz);
+      const midX = (point.x + next.x) / 2;
+      const midZ = (point.z + next.z) / 2;
+      const angle = Math.atan2(dx, dz);
+
+      return (
+        <mesh
+          key={`edge-${index}`}
+          position={[midX, 0.22, midZ]}
+          rotation={[0, angle, 0]}
+        >
+          <boxGeometry args={[2.2, 0.35, length]} />
+          <meshStandardMaterial color="#166534" />
+        </mesh>
+      );
+    })}
+  </>
+) : (
+        <>
+          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} receiveShadow>
+            <planeGeometry args={[plotWidth, plotDepth]} />
+            <meshStandardMaterial color="#bbf7d0" />
+          </mesh>
+
+          <lineSegments>
+            <edgesGeometry args={[new THREE.BoxGeometry(plotWidth, 0.1, plotDepth)]} />
+            <lineBasicMaterial color="#1e293b" />
+          </lineSegments>
+        </>
+      )}
 
       {floorBlocks}
-    <Html position={[0, -1, plotDepth / 2 + 5]}>
+    <Html
+  position={[
+    0,
+    -1,
+    (shapeType === "polygon" ? polygonBounds.depth : plotDepth) / 2 + 5,
+  ]}
+>
       <div style={{ fontSize: "12px", color: "#111" }}>
         Road Side
       </div>
@@ -106,6 +260,12 @@ const safeBuildingDepth = useMemo(
 }
 
 function Building3DPreview({ preview3D }) {
+  console.log("preview3D in details:", {
+  shapeType: preview3D?.shapeType,
+  plotPolygonLength: preview3D?.plotPolygon?.length,
+  plotPolygon: preview3D?.plotPolygon,
+  plotArea: preview3D?.plotArea,
+});
   const savedFloors = Number(preview3D?.floors || 2);
 
   const [floors, setFloors] = useState(savedFloors);
@@ -116,24 +276,46 @@ function Building3DPreview({ preview3D }) {
     Number(preview3D?.buildingDepth || 36)
   );
 
-  const plotAreaFromLand = Number(preview3D?.plotArea || 0);
+const shapeType = preview3D?.shapeType || "rectangle";
+const plotPolygon = Array.isArray(preview3D?.plotPolygon)
+  ? preview3D.plotPolygon
+  : [];
 
-  const plotWidth = Math.sqrt(plotAreaFromLand || 1600);
-  const plotDepth = plotWidth > 0 ? plotAreaFromLand / plotWidth : 40;
-  const floorHeight = Number(preview3D?.floorHeight || 10);
-  const minOpenSpacePercent = Number(preview3D?.minOpenSpacePercent || 30);
+const plotAreaFromLand = Number(preview3D?.plotArea || 0);
 
-  const plotArea = plotWidth * plotDepth;
-  const buildingFootprint = buildingWidth * buildingDepth;
+// rectangle fallback
+const plotWidth = Math.sqrt(plotAreaFromLand || 1600);
+const plotDepth = plotWidth > 0 ? plotAreaFromLand / plotWidth : 40;
+
+const floorHeight = Number(preview3D?.floorHeight || 10);
+const minOpenSpacePercent = Number(preview3D?.minOpenSpacePercent || 30);
+
+const rawPolygonArea = calculatePolygonArea(plotPolygon);
+
+const plotArea =
+  shapeType === "polygon"
+    ? (plotAreaFromLand > 0 ? plotAreaFromLand : rawPolygonArea)
+    : plotWidth * plotDepth;
+
+const polygonScaleFactor =
+  shapeType === "polygon" && rawPolygonArea > 0 && plotArea > 0
+    ? Math.sqrt(plotArea / rawPolygonArea)
+    : 1;  const buildingFootprint = buildingWidth * buildingDepth;
+
   const minOpenSpaceArea = (plotArea * minOpenSpacePercent) / 100;
   const maxAllowedFootprint = plotArea - minOpenSpaceArea;
   const remainingOpenSpace = plotArea - buildingFootprint;
   const actualOpenSpacePercent =
     plotArea > 0 ? (remainingOpenSpace / plotArea) * 100 : 0;
   const totalBuiltUpArea = buildingFootprint * floors;
+
+  const baseDimensionCheck =
+    shapeType === "polygon"
+      ? true
+      : buildingWidth <= plotWidth && buildingDepth <= plotDepth;
+
   const isValidPlan =
-    buildingWidth <= plotWidth &&
-    buildingDepth <= plotDepth &&
+    baseDimensionCheck &&
     buildingFootprint <= maxAllowedFootprint &&
     remainingOpenSpace >= 0;
 
@@ -170,7 +352,7 @@ function Building3DPreview({ preview3D }) {
 
       <div className="building-preview-stats">
         <div className="building-preview-stat">
-          <span>Plot Area</span>
+          <span>Plot Area ({shapeType === "polygon" ? "custom shape" : "rectangle"})</span>
           <strong>{plotArea.toLocaleString()} sqft</strong>
         </div>
         <div className="building-preview-stat">
@@ -194,6 +376,12 @@ function Building3DPreview({ preview3D }) {
           <strong>{actualOpenSpacePercent.toFixed(1)}%</strong>
         </div>
       </div>
+
+      {shapeType === "polygon" && (
+        <div className="building-preview-shape-note">
+          This land uses a custom seller-drawn boundary. Capacity is calculated from polygon area.
+        </div>
+      )}
 
             <div className="building-preview-controls">
         <div className="building-preview-control">
@@ -231,16 +419,19 @@ function Building3DPreview({ preview3D }) {
       )}
 
       <div className="building-preview-canvas">
-        <Canvas camera={{ position: [80, 60, 80], fov: 40 }} shadows>
-          <SceneContent
-            plotWidth={plotWidth}
-            plotDepth={plotDepth}
-            floors={floors}
-            floorHeight={floorHeight}
-            buildingWidth={buildingWidth}
-            buildingDepth={buildingDepth}
-            isValidPlan={isValidPlan}
-          />
+        <Canvas camera={{ position: [70, 95, 70], fov: 38 }} shadows>
+            <SceneContent
+              shapeType={shapeType}
+              plotWidth={plotWidth}
+              plotDepth={plotDepth}
+              plotPolygon={plotPolygon}
+              polygonScaleFactor={polygonScaleFactor}
+              floors={floors}
+              floorHeight={floorHeight}
+              buildingWidth={buildingWidth}
+              buildingDepth={buildingDepth}
+              isValidPlan={isValidPlan}
+            />  
         </Canvas>
       </div>
 

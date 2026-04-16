@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
+
+function distance(a, b) {
+  return Math.hypot(b.x - a.x, b.y - a.y);
+}
 const CANVAS_SIZE = 420;
 const PADDING = 24;
 
@@ -39,7 +43,7 @@ function denormalizePoints(displayPoints) {
   }));
 }
 
-function PlotShapeEditor({ points = [], onChange }) {
+function PlotShapeEditor({ points = [], onChange, targetAreaSqft = 0 }) {
   const [displayPoints, setDisplayPoints] = useState(() =>
     points.length
       ? normalizePoints(points)
@@ -59,6 +63,30 @@ function PlotShapeEditor({ points = [], onChange }) {
       setDisplayPoints(normalizePoints(points));
     }
   }, [points]);
+
+  const rawPoints = useMemo(
+  () => denormalizePoints(displayPoints),
+  [displayPoints]
+);
+
+  const rawArea = useMemo(() => {
+  if (rawPoints.length < 3) return 0;
+
+  let area = 0;
+  for (let i = 0; i < rawPoints.length; i++) {
+    const curr = rawPoints[i];
+    const next = rawPoints[(i + 1) % rawPoints.length];
+    area += curr.x * next.y - next.x * curr.y;
+  }
+
+  return Math.abs(area) / 2;
+}, [rawPoints]);
+
+  const areaScaleFactor = useMemo(() => {
+  if (!targetAreaSqft || !rawArea) return 1;
+  return Math.sqrt(targetAreaSqft / rawArea);
+}, [targetAreaSqft, rawArea]);
+
 
   const polygonPath = useMemo(() => {
     if (displayPoints.length < 2) return "";
@@ -210,7 +238,7 @@ function PlotShapeEditor({ points = [], onChange }) {
             strokeDasharray="6 6"
           />
 
-          {displayPoints.length >= 3 && (
+                    {displayPoints.length >= 3 && (
             <path
               d={`${polygonPath} Z`}
               fill="rgba(34, 197, 94, 0.18)"
@@ -218,6 +246,43 @@ function PlotShapeEditor({ points = [], onChange }) {
               strokeWidth="3"
             />
           )}
+
+          {displayPoints.length >= 2 &&
+            displayPoints.map((point, index) => {
+              const next = displayPoints[(index + 1) % displayPoints.length];
+
+              const midX = (point.x + next.x) / 2;
+              const midY = (point.y + next.y) / 2;
+
+              const rawStart = rawPoints[index];
+              const rawEnd = rawPoints[(index + 1) % rawPoints.length];
+
+              const length = distance(rawStart, rawEnd) * areaScaleFactor;
+
+              return (
+                <g key={`edge-${index}`}>
+                  <rect
+                    x={midX - 26}
+                    y={midY - 12}
+                    width="52"
+                    height="18"
+                    rx="6"
+                    fill="#ffffff"
+                    stroke="#cbd5e1"
+                  />
+                  <text
+                    x={midX}
+                    y={midY + 1}
+                    textAnchor="middle"
+                    fontSize="10"
+                    fill="#0f172a"
+                    fontWeight="700"
+                  >
+                    {length.toFixed(1)} ft
+                  </text>
+                </g>
+              );
+            })}
 
           {displayPoints.map((point, index) => (
             <g key={`${point.x}-${point.y}-${index}`}>
