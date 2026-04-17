@@ -1,0 +1,150 @@
+.alerts-page {
+  padding: 24px;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+.alerts-header {
+  max-width: 1200px;
+  margin: 0 auto 24px;
+}
+
+.alerts-header h1 {
+  margin: 0 0 8px;
+  color: #111827;
+}
+
+.alerts-header p {
+  margin: 0;
+  color: #6b7280;
+}
+
+.alerts-feedback {
+  max-width: 1200px;
+  margin: 0 auto 16px;
+}
+
+.alerts-layout {
+  max-width: 1200px;
+  margin: 0 auto 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.alerts-card {
+  max-width: 1200px;
+  margin: 0 auto 24px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  padding: 20px;
+}
+
+.alerts-card h2 {
+  margin: 0 0 16px;
+  color: #111827;
+}
+
+.alerts-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.alerts-submit-btn,
+.alerts-delete-btn,
+.alerts-open-btn,
+.alerts-mark-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.alerts-submit-btn,
+.alerts-open-btn {
+  background: #111827;
+  color: #ffffff;
+}
+
+.alerts-mark-btn {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.alerts-delete-btn {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.alerts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alerts-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.alerts-item h3 {
+  margin: 0 0 6px;
+  color: #111827;
+  font-size: 16px;
+}
+
+.alerts-item p {
+  margin: 4px 0;
+  color: #4b5563;
+}
+
+.notification-item.unread {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.notification-item.read {
+  opacity: 0.88;
+}
+
+.notification-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notification-time {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.alerts-info {
+  color: #6b7280;
+}
+
+@media (max-width: 900px) {
+  .alerts-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .alerts-form {
+    grid-template-columns: 1fr;
+  }
+
+  .alerts-item {
+    flex-direction: column;
+  }
+
+  .notification-actions {
+    width: 100%;
+  }
+}
