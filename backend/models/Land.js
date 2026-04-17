@@ -119,6 +119,54 @@ const landSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    listingFee: {
+      type: Number,
+      default: 500,
+    },
+    paymentMethod: {
+      type: String,
+      enum: ["bKash", "Nagad", "Rocket", "Bank Transfer"],
+      default: "",
+      trim: true,
+    },
+    paymentSender: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    paymentTransactionId: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    paymentAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "verified", "rejected"],
+      default: "pending",
+    },
+    paymentVerifiedAt: {
+      type: Date,
+      default: null,
+    },
+    paymentVerifiedBy: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    paymentNotes: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    listingFeePaid: {
+      type: Boolean,
+      default: false,
+    },
     preview3D: {
       enabled: {
         type: Boolean,

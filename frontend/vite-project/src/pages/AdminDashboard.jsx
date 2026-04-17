@@ -25,6 +25,11 @@ function AdminDashboard() {
     priceNegotiable: false,
   });
 
+  // Payment management state
+  const [pendingPayments, setPendingPayments] = useState([]);
+  const [loadingPayments, setLoadingPayments] = useState(false);
+  const [verifyingPayment, setVerifyingPayment] = useState(null);
+
   const fetchAllPosts = async () => {
     try {
       setLoading(true);
@@ -50,8 +55,34 @@ function AdminDashboard() {
     }
   };
 
+  const fetchPendingPayments = async () => {
+    try {
+      setLoadingPayments(true);
+      setErrorMessage("");
+
+      const response = await fetch("http://localhost:5000/api/lands/admin/pending-payments", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch pending payments");
+      }
+
+      setPendingPayments(data);
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setLoadingPayments(false);
+    }
+  };
+
   useEffect(() => {
     fetchAllPosts();
+    fetchPendingPayments();
   }, []);
 
   const handleApprove = async (id) => {
@@ -137,6 +168,79 @@ function AdminDashboard() {
       }
 
       setMessage(data.message);
+      fetchAllPosts();
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
+  const handleVerifyPayment = async (postId) => {
+    setMessage("");
+    setErrorMessage("");
+    setVerifyingPayment(postId);
+
+    const notes = window.prompt("Enter verification notes (optional):", "");
+
+    if (notes === null) {
+      setVerifyingPayment(null);
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/lands/${postId}/payment/verify`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ notes }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to verify payment");
+      }
+
+      setMessage(data.message);
+      fetchPendingPayments();
+      fetchAllPosts();
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setVerifyingPayment(null);
+    }
+  };
+
+  const handleRejectPayment = async (postId) => {
+    setMessage("");
+    setErrorMessage("");
+
+    const notes = window.prompt("Enter rejection reason:", "");
+
+    if (!notes || notes.trim() === "") {
+      alert("Rejection reason is required");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/lands/${postId}/payment/reject`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ notes }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to reject payment");
+      }
+
+      setMessage(data.message);
+      fetchPendingPayments();
       fetchAllPosts();
     } catch (error) {
       setErrorMessage(error.message);
@@ -243,6 +347,16 @@ function AdminDashboard() {
 
       {!loading && (
         <>
+          <PaymentSection
+            title="Pending Payment Verifications"
+            posts={pendingPayments}
+            loading={loadingPayments}
+            emptyMessage="No pending payment verifications."
+            handleVerifyPayment={handleVerifyPayment}
+            handleRejectPayment={handleRejectPayment}
+            verifyingPayment={verifyingPayment}
+          />
+
           <AdminSection
             title="Pending Land Posts"
             posts={pendingPosts}
@@ -543,6 +657,108 @@ function AdminSection({
                   onClick={() => handleDelete(post._id)}
                 >
                   Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PaymentSection({
+  title,
+  posts,
+  loading,
+  emptyMessage,
+  handleVerifyPayment,
+  handleRejectPayment,
+  verifyingPayment,
+}) {
+  return (
+    <div className="admin-section-wrapper">
+      <h2 className="admin-section-title">{title}</h2>
+
+      {loading ? (
+        <p className="admin-info-message">Loading payment verifications...</p>
+      ) : posts.length === 0 ? (
+        <p className="admin-info-message">{emptyMessage}</p>
+      ) : (
+        <div className="admin-posts-grid">
+          {posts.map((post) => (
+            <div className="admin-post-card" key={post._id}>
+              <div className="admin-post-top">
+                <div>
+                  <span className="admin-status-badge payment-pending">Payment Pending</span>
+                  <h3>{post.title}</h3>
+                </div>
+                <p className="admin-post-price">
+                  ৳ {Number(post.price).toLocaleString()}
+                </p>
+              </div>
+
+              <p className="admin-post-description">{post.description}</p>
+
+              <div className="admin-post-grid">
+                <div className="admin-info-box">
+                  <span>Land Type</span>
+                  <strong>{post.landType}</strong>
+                </div>
+                <div className="admin-info-box">
+                  <span>Size</span>
+                  <strong>{post.landSizeSqft} sqft</strong>
+                </div>
+                <div className="admin-info-box">
+                  <span>Payment Method</span>
+                  <strong>{post.paymentMethod}</strong>
+                </div>
+                <div className="admin-info-box">
+                  <span>Paid Amount</span>
+                  <strong>৳ {Number(post.paymentAmount).toLocaleString()}</strong>
+                </div>
+              </div>
+
+              <div className="admin-section">
+                <h4>Payment Details</h4>
+                <div className="payment-details-grid">
+                  <p><strong>Sender:</strong> {post.paymentSender}</p>
+                  <p><strong>Transaction ID:</strong> {post.paymentTransactionId}</p>
+                  <p><strong>Amount:</strong> ৳ {Number(post.paymentAmount).toLocaleString()}</p>
+                  <p><strong>Method:</strong> {post.paymentMethod}</p>
+                </div>
+              </div>
+
+              <div className="admin-seller-box">
+                <h4>Seller Information</h4>
+                <p>
+                  <strong>Name:</strong> {post.sellerFirstName} {post.sellerLastName}
+                </p>
+                <p>
+                  <strong>Email:</strong> {post.sellerEmail}
+                </p>
+                <p>
+                  <strong>Phone:</strong> {post.sellerPhone}
+                </p>
+                <p>
+                  <strong>Posted:</strong> {new Date(post.createdAt).toLocaleString()}
+                </p>
+              </div>
+
+              <div className="admin-action-buttons">
+                <button
+                  className="approve-post-btn"
+                  onClick={() => handleVerifyPayment(post._id)}
+                  disabled={verifyingPayment === post._id}
+                >
+                  {verifyingPayment === post._id ? "Verifying..." : "Verify Payment"}
+                </button>
+
+                <button
+                  className="reject-post-btn"
+                  onClick={() => handleRejectPayment(post._id)}
+                >
+                  Reject Payment
                 </button>
               </div>
             </div>
