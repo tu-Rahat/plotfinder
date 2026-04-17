@@ -4,6 +4,7 @@ import PlotShapeEditor from "../components/PlotShapeEditor";
 function UserDashboard() {
   const storedUser = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
+  const LISTING_FEE = 500;
 
   const initialFormData = {
     title: "",
@@ -25,6 +26,10 @@ function UserDashboard() {
     crimeRateRating: 3,
     sellerPhone: storedUser?.phone || "",
     priceNegotiable: false,
+    paymentMethod: "bKash",
+    paymentSender: "",
+    paymentTransactionId: "",
+    paymentAmount: LISTING_FEE,
     latitude: "",
     longitude: "",
     formattedAddress: "",
@@ -246,6 +251,17 @@ function UserDashboard() {
         return;
     }
   }
+
+    if (!formData.paymentMethod || !formData.paymentSender || !formData.paymentTransactionId) {
+      setErrorMessage("Please fill in your payment method, sender number/account, and transaction ID.");
+      return;
+    }
+
+    if (Number(formData.paymentAmount) < LISTING_FEE) {
+      setErrorMessage(`Listing fee is ৳${LISTING_FEE}. Please enter the correct payment amount.`);
+      return;
+    }
+
     setMessage("");
     setErrorMessage("");
 
@@ -256,6 +272,10 @@ function UserDashboard() {
         sellerLastName: storedUser?.lastName || "",
         sellerEmail: storedUser?.email || "",
         sellerPhone: formData.sellerPhone,
+        paymentMethod: formData.paymentMethod,
+        paymentSender: formData.paymentSender,
+        paymentTransactionId: formData.paymentTransactionId,
+        paymentAmount: Number(formData.paymentAmount),
         preview3D: {
           enabled: formData.preview3DEnabled,
           shapeType: formData.previewShapeType || "rectangle",
@@ -335,7 +355,10 @@ function UserDashboard() {
       previewBuildingWidth: post.preview3D?.buildingWidth || 24,
       previewBuildingDepth: post.preview3D?.buildingDepth || 36,
       previewMinOpenSpacePercent: post.preview3D?.minOpenSpacePercent || 30,
-
+      paymentMethod: post.paymentMethod || "bKash",
+      paymentSender: post.paymentSender || "",
+      paymentTransactionId: post.paymentTransactionId || "",
+      paymentAmount: post.paymentAmount || LISTING_FEE,
     });
     setEditLocationQuery(post.location?.formattedAddress || post.location?.address || "");
     setEditLocationResults([]);
@@ -383,6 +406,10 @@ function UserDashboard() {
           body: JSON.stringify({
             ...editFormData,
             sellerPhone: editFormData.sellerPhone,
+            paymentMethod: editFormData.paymentMethod,
+            paymentSender: editFormData.paymentSender,
+            paymentTransactionId: editFormData.paymentTransactionId,
+            paymentAmount: Number(editFormData.paymentAmount),
             preview3D: {
               enabled: editFormData.preview3DEnabled,
               shapeType: editFormData.previewShapeType || "rectangle",
@@ -986,6 +1013,69 @@ function UserDashboard() {
                 required
               />
             </div>
+
+            <div className="form-group full-width payment-panel">
+              <h3>Listing Payment</h3>
+              <p>
+                Every land listing requires a one-time fee of <strong>৳{LISTING_FEE}</strong>.
+                Please send payment using one of the available  methods below,
+                then enter your transaction details.
+              </p>
+              <ul>
+                <li><strong>bKash</strong>: 01712164124</li>
+                <li><strong>Nagad</strong>: 01712164124</li>
+                <li><strong>Rocket</strong>: 01712164124</li>
+                <li><strong>Bank Transfer</strong>: Sonali Bank, A/C 1234567890, Dhaka Branch</li>
+              </ul>
+            </div>
+
+            <div className="form-group">
+              <label>Payment Method</label>
+              <select
+                name="paymentMethod"
+                value={formData.paymentMethod}
+                onChange={handleChange}
+              >
+                <option value="bKash">bKash</option>
+                <option value="Nagad">Nagad</option>
+                <option value="Rocket">Rocket</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>Sender Number / Account</label>
+              <input
+                name="paymentSender"
+                placeholder="Your mobile number or bank account"
+                value={formData.paymentSender}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Transaction ID</label>
+              <input
+                name="paymentTransactionId"
+                placeholder="Enter payment transaction or reference ID"
+                value={formData.paymentTransactionId}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Paid Amount (৳)</label>
+              <input
+                type="number"
+                name="paymentAmount"
+                min={LISTING_FEE}
+                value={formData.paymentAmount}
+                onChange={handleChange}
+                required
+              />
+            </div>
           </div>
         </div>
 
@@ -1033,6 +1123,14 @@ function UserDashboard() {
                   <strong>Location:</strong> {post.location.district}, {post.location.division}
                 </p>
                 <p><strong>Posted:</strong> {new Date(post.createdAt).toLocaleString()}</p>
+                <p><strong>Payment Status:</strong> 
+                  <span className={`payment-status ${post.paymentStatus === 'verified' ? 'verified' : post.paymentStatus === 'rejected' ? 'rejected' : 'pending'}`}>
+                    {post.paymentStatus === 'verified' ? 'Verified' : post.paymentStatus === 'rejected' ? 'Rejected' : 'Pending Verification'}
+                  </span>
+                </p>
+                {post.paymentStatus === 'rejected' && post.paymentNotes && (
+                  <p><strong>Payment Notes:</strong> {post.paymentNotes}</p>
+                )}
                 {post.approvedAt && (
                   <p>
                     <strong>Approved At:</strong> {new Date(post.approvedAt).toLocaleString()}

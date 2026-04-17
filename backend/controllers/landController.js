@@ -2,6 +2,8 @@ const Land = require("../models/Land");
 const LocationPreference = require("../models/LocationPreference");
 const Notification = require("../models/Notification");
 
+const LISTING_FEE = Number(process.env.LISTING_FEE || 500);
+
 const createLandPost = async (req, res) => {
   try {
     const {
@@ -31,6 +33,10 @@ const createLandPost = async (req, res) => {
       longitude,
       formattedAddress,
       preview3D,
+      paymentMethod,
+      paymentSender,
+      paymentTransactionId,
+      paymentAmount,
     } = req.body;
 
     const sellerId = req.user?.id || req.user?.userId || req.user?._id;
@@ -58,10 +64,20 @@ const createLandPost = async (req, res) => {
       nearbyConstructionRating == null ||
       accessibilityRating == null ||
       roadHealthRating == null ||
-      crimeRateRating == null
+      crimeRateRating == null ||
+      !paymentMethod ||
+      !paymentSender ||
+      !paymentTransactionId ||
+      paymentAmount == null
     ) {
       return res.status(400).json({
-        message: "Please fill all required fields",
+        message: "Please fill all required fields, including payment details",
+      });
+    }
+
+    if (Number(paymentAmount) < LISTING_FEE) {
+      return res.status(400).json({
+        message: `Listing fee is ৳${LISTING_FEE}. Please enter a valid payment amount.`,
       });
     }
 
@@ -88,6 +104,16 @@ const createLandPost = async (req, res) => {
       ownershipType,
       roadAccess,
       nearbyLandmark,
+      listingFee: LISTING_FEE,
+      paymentMethod,
+      paymentSender,
+      paymentTransactionId,
+      paymentAmount: Number(paymentAmount),
+      listingFeePaid: Number(paymentAmount) >= LISTING_FEE,
+      paymentStatus: "pending",
+      paymentNotes: "",
+      paymentVerifiedAt: null,
+      paymentVerifiedBy: "",
       locationRating,
       nearbyConstructionRating,
       accessibilityRating,
@@ -214,6 +240,12 @@ const approveLandPost = async (req, res) => {
       });
     }
 
+    if (land.paymentStatus !== "verified") {
+      return res.status(400).json({
+        message: "Payment must be verified before approving this land post.",
+      });
+    }
+
     land.status = "approved";
     land.approvedAt = new Date();
     land.approvedBy = req.user.email || "admin";
@@ -258,11 +290,75 @@ const approveLandPost = async (req, res) => {
       message: "Land post approved successfully",
       land,
     });
-
-    
   } catch (error) {
     return res.status(500).json({
       message: "Server error while approving land post",
+      error: error.message,
+    });
+  }
+};
+
+const verifyLandPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentNotes } = req.body;
+
+    const land = await Land.findById(id);
+
+    if (!land) {
+      return res.status(404).json({
+        message: "Land post not found",
+      });
+    }
+
+    land.paymentStatus = "verified";
+    land.listingFeePaid = true;
+    land.paymentVerifiedAt = new Date();
+    land.paymentVerifiedBy = req.user.email || "admin";
+    land.paymentNotes = paymentNotes || "Payment verified by admin";
+
+    await land.save();
+
+    return res.status(200).json({
+      message: "Land payment verified successfully",
+      land,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while verifying land payment",
+      error: error.message,
+    });
+  }
+};
+
+const rejectLandPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { paymentNotes } = req.body;
+
+    const land = await Land.findById(id);
+
+    if (!land) {
+      return res.status(404).json({
+        message: "Land post not found",
+      });
+    }
+
+    land.paymentStatus = "rejected";
+    land.listingFeePaid = false;
+    land.paymentVerifiedAt = null;
+    land.paymentVerifiedBy = req.user.email || "admin";
+    land.paymentNotes = paymentNotes || "Payment rejected by admin";
+
+    await land.save();
+
+    return res.status(200).json({
+      message: "Land payment rejected successfully",
+      land,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while rejecting land payment",
       error: error.message,
     });
   }
@@ -471,6 +567,10 @@ const updateMyLandPost = async (req, res) => {
       longitude,
       formattedAddress,
       preview3D,
+      paymentMethod,
+      paymentSender,
+      paymentTransactionId,
+      paymentAmount,
     } = req.body;
 
     const land = await Land.findOne({ _id: id, sellerId });
@@ -503,6 +603,12 @@ const updateMyLandPost = async (req, res) => {
       });
     }
 
+    if (paymentMethod && paymentAmount != null && Number(paymentAmount) < LISTING_FEE) {
+      return res.status(400).json({
+        message: `Listing fee is ৳${LISTING_FEE}. Please enter a valid payment amount.`,
+      });
+    }
+
     land.title = title;
     land.description = description;
     land.landType = landType;
@@ -521,6 +627,14 @@ const updateMyLandPost = async (req, res) => {
     land.roadAccess = roadAccess || "";
     land.nearbyLandmark = nearbyLandmark || "";
     land.sellerPhone = sellerPhone;
+    land.paymentMethod = paymentMethod || land.paymentMethod;
+    land.paymentSender = paymentSender || land.paymentSender;
+    land.paymentTransactionId = paymentTransactionId || land.paymentTransactionId;
+    land.paymentAmount = paymentAmount != null ? Number(paymentAmount) : land.paymentAmount;
+    if (paymentMethod || paymentSender || paymentTransactionId || paymentAmount != null) {
+      land.paymentStatus = "pending";
+      land.listingFeePaid = Number(paymentAmount) >= LISTING_FEE;
+    }
     land.priceNegotiable = priceNegotiable || false;
     land.locationRating = Number(locationRating);
     land.nearbyConstructionRating = Number(nearbyConstructionRating);
@@ -588,6 +702,24 @@ const deleteMyLandPost = async (req, res) => {
   }
 };
 
+const getPendingPayments = async (req, res) => {
+  try {
+    const lands = await Land.find({
+      paymentStatus: "pending",
+      status: { $in: ["pending", "draft"] }
+    })
+      .populate("sellerId", "firstName lastName email phone")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json(lands);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while fetching pending payments",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createLandPost,
   getApprovedLands,
@@ -596,9 +728,12 @@ module.exports = {
   getAllLandsForAdmin,
   approveLandPost,
   rejectLandPost,
+  verifyLandPayment,
+  rejectLandPayment,
   updateLandPostByAdmin,
   deleteLandPostByAdmin,
   updateMyLandPost,
   deleteMyLandPost,
   getSingleLand,
+  getPendingPayments,
 };
