@@ -115,6 +115,16 @@ function Navbar() {
                   Dashboard
                 </Link>
 
+                {loggedInUser?.role === "user" && (
+                  <Link
+                    to="/alerts"
+                    className="dropdown-item"
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    Alerts
+                  </Link>
+                )}
+
                 <button className="dropdown-item logout-item" onClick={handleLogout}>
                   Logout
                 </button>

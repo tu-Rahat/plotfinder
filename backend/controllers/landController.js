@@ -1,4 +1,6 @@
 const Land = require("../models/Land");
+const LocationPreference = require("../models/LocationPreference");
+const Notification = require("../models/Notification");
 
 const createLandPost = async (req, res) => {
   try {
@@ -221,10 +223,43 @@ const approveLandPost = async (req, res) => {
 
     await land.save();
 
+    const matchingPreferences = await LocationPreference.find({
+      division: land.location?.division,
+      district: land.location?.district,
+      $or: [
+        { upazila: "" },
+        { upazila: land.location?.upazila || "" },
+      ],
+    });
+
+    const filteredPreferences = matchingPreferences.filter((preference) => {
+      const landTypeMatches =
+        !preference.landType || preference.landType === land.landType;
+
+      const priceMatches =
+        !preference.maxPrice || Number(land.price) <= Number(preference.maxPrice);
+
+      return landTypeMatches && priceMatches;
+    });
+
+    if (filteredPreferences.length > 0) {
+      const notifications = filteredPreferences.map((preference) => ({
+        userId: preference.userId,
+        landId: land._id,
+        type: "new_land_match",
+        title: `New land posted in ${land.location?.upazila || land.location?.district}`,
+        message: `${land.landType} land "${land.title}" is now available in ${land.location?.district}, ${land.location?.division}.`,
+      }));
+
+      await Notification.insertMany(notifications);
+    }
+
     return res.status(200).json({
       message: "Land post approved successfully",
       land,
     });
+
+    
   } catch (error) {
     return res.status(500).json({
       message: "Server error while approving land post",

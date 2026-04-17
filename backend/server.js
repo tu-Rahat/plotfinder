@@ -7,6 +7,7 @@ const buyRequestRoutes = require("./routes/buyRequestRoutes");
 const shortlistRoutes = require("./routes/shortlistRoutes");
 const placeRoutes = require("./routes/placeRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/buy-requests", buyRequestRoutes);
 app.use("/api/shortlist", shortlistRoutes);
 app.use("/api/places", placeRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI)
