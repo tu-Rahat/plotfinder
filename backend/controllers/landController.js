@@ -177,7 +177,12 @@ const getSingleLand = async (req, res) => {
 
 const getApprovedLands = async (req, res) => {
   try {
-    const lands = await Land.find({ status: "approved" }).sort({ createdAt: -1 });
+    await Land.updateMany(
+      { boostStatus: "active", boostExpiry: { $lt: new Date() } },
+      { $set: { boostStatus: "expired", boostTier: "none", boostWeight: 0 } }
+    );
+
+    const lands = await Land.find({ status: "approved" }).sort({ boostWeight: -1, createdAt: -1 });
 
     return res.status(200).json(lands);
   } catch (error) {
@@ -720,6 +725,144 @@ const getPendingPayments = async (req, res) => {
   }
 };
 
+const requestBoostPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { boostTier, boostPaymentMethod, boostSender, boostTransactionId, boostPaymentAmount } = req.body;
+    const sellerId = req.user.id || req.user.userId || req.user._id;
+
+    const land = await Land.findOne({ _id: id, sellerId });
+
+    if (!land) {
+      return res.status(404).json({ message: "Land post not found or you are not authorized" });
+    }
+
+    if (!boostTier || !boostPaymentMethod || !boostSender || !boostTransactionId) {
+      return res.status(400).json({ message: "Please provide all required payment details" });
+    }
+
+    land.boostStatus = "pending";
+    land.boostTier = boostTier;
+    land.boostPaymentMethod = boostPaymentMethod;
+    land.boostSender = boostSender;
+    land.boostTransactionId = boostTransactionId;
+    land.boostPaymentAmount = Number(boostPaymentAmount || 0);
+
+    await land.save();
+
+    return res.status(200).json({
+      message: "Promotion request submitted successfully. Waiting for admin verification.",
+      land,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while requesting promotion",
+      error: error.message,
+    });
+  }
+};
+
+const verifyBoostPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const land = await Land.findById(id);
+
+    if (!land) {
+      return res.status(404).json({ message: "Land post not found" });
+    }
+
+    if (land.boostStatus !== "pending") {
+      return res.status(400).json({ message: "No pending promotion for this land post" });
+    }
+
+    let days = 0;
+    let weight = 0;
+
+    switch (land.boostTier) {
+      case "gold":
+        days = 30;
+        weight = 3;
+        break;
+      case "silver":
+        days = 15;
+        weight = 2;
+        break;
+      case "bronze":
+        days = 7;
+        weight = 1;
+        break;
+      default:
+        days = 0;
+        weight = 0;
+    }
+
+    if (days === 0) {
+      return res.status(400).json({ message: "Invalid boost tier" });
+    }
+
+    const expiryDate = new Date();
+    expiryDate.setDate(expiryDate.getDate() + days);
+
+    land.boostStatus = "active";
+    land.boostWeight = weight;
+    land.boostExpiry = expiryDate;
+
+    await land.save();
+
+    return res.status(200).json({
+      message: `Promotion verified. Post is now boosted for ${days} days.`,
+      land,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while verifying promotion",
+      error: error.message,
+    });
+  }
+};
+
+const rejectBoostPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const land = await Land.findById(id);
+
+    if (!land) {
+      return res.status(404).json({ message: "Land post not found" });
+    }
+
+    land.boostStatus = "rejected";
+    land.boostTier = "none";
+    land.boostWeight = 0;
+
+    await land.save();
+
+    return res.status(200).json({
+      message: "Promotion payment rejected successfully",
+      land,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while rejecting promotion payment",
+      error: error.message,
+    });
+  }
+};
+
+const getPendingBoosts = async (req, res) => {
+  try {
+    const lands = await Land.find({ boostStatus: "pending" })
+      .populate("sellerId", "firstName lastName email phone")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json(lands);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Server error while fetching pending promotions",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createLandPost,
   getApprovedLands,
@@ -736,4 +879,8 @@ module.exports = {
   deleteMyLandPost,
   getSingleLand,
   getPendingPayments,
+  requestBoostPayment,
+  verifyBoostPayment,
+  rejectBoostPayment,
+  getPendingBoosts,
 };
