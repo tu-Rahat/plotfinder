@@ -65,6 +65,55 @@
   box-shadow: 0 14px 30px rgba(0, 0, 0, 0.1);
 }
 
+.land-card-badges {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.premium-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.badge-gold {
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(255, 140, 0, 0.4);
+}
+
+.badge-silver {
+  background: linear-gradient(135deg, #e5e7eb, #9ca3af);
+  color: #1f2937;
+  box-shadow: 0 4px 10px rgba(156, 163, 175, 0.4);
+}
+
+.badge-bronze {
+  background: linear-gradient(135deg, #fcd34d, #d97706);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.4);
+}
+
+.boosted-card.gold-tier {
+  border: 2px solid #ffd700;
+  background: #fffdf5;
+}
+
+.boosted-card.silver-tier {
+  border: 2px solid #9ca3af;
+  background: #f9fafb;
+}
+
+.boosted-card.bronze-tier {
+  border: 2px solid #d97706;
+  background: #fffcf8;
+}
+
 .land-type-badge {
   display: inline-block;
   background: #f0fdf4;

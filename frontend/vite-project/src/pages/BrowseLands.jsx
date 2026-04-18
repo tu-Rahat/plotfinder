@@ -122,8 +122,17 @@ function BrowseLands() {
           const isShortlisted = shortlistedIds.includes(land._id);
 
           return (
-            <div className="land-card" key={land._id}>
-              <p className="land-type-badge">{land.landType}</p>
+            <div className={`land-card ${land.boostStatus === 'active' ? `boosted-card ${land.boostTier}-tier` : ''}`} key={land._id}>
+              <div className="land-card-badges">
+                <p className="land-type-badge" style={{ margin: 0 }}>{land.landType}</p>
+                {land.boostStatus === 'active' && (
+                  <p className={`premium-badge badge-${land.boostTier}`} style={{ margin: 0 }}>
+                    {land.boostTier === 'gold' && '⭐⭐⭐ Gold Promoted'}
+                    {land.boostTier === 'silver' && '⭐⭐ Silver Promoted'}
+                    {land.boostTier === 'bronze' && '⭐ Promoted'}
+                  </p>
+                )}
+              </div>
 
               <h2>{land.title}</h2>
 
