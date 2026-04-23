@@ -30,6 +30,11 @@ function AdminDashboard() {
   const [loadingPayments, setLoadingPayments] = useState(false);
   const [verifyingPayment, setVerifyingPayment] = useState(null);
 
+  // Boost management state
+  const [pendingBoosts, setPendingBoosts] = useState([]);
+  const [loadingBoosts, setLoadingBoosts] = useState(false);
+  const [verifyingBoost, setVerifyingBoost] = useState(null);
+
   const fetchAllPosts = async () => {
     try {
       setLoading(true);
@@ -80,9 +85,35 @@ function AdminDashboard() {
     }
   };
 
+  const fetchPendingBoosts = async () => {
+    try {
+      setLoadingBoosts(true);
+      setErrorMessage("");
+
+      const response = await fetch("http://localhost:5000/api/lands/admin/pending-boosts", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch pending boosts");
+      }
+
+      setPendingBoosts(data);
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setLoadingBoosts(false);
+    }
+  };
+
   useEffect(() => {
     fetchAllPosts();
     fetchPendingPayments();
+    fetchPendingBoosts();
   }, []);
 
   const handleApprove = async (id) => {
@@ -247,6 +278,63 @@ function AdminDashboard() {
     }
   };
 
+  const handleVerifyBoost = async (postId) => {
+    setMessage("");
+    setErrorMessage("");
+    setVerifyingBoost(postId);
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/lands/admin/boost/${postId}/verify`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to verify promotion payment");
+      }
+
+      setMessage(data.message);
+      fetchPendingBoosts();
+      fetchAllPosts();
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setVerifyingBoost(null);
+    }
+  };
+
+  const handleRejectBoost = async (postId) => {
+    setMessage("");
+    setErrorMessage("");
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/lands/admin/boost/${postId}/reject`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to reject promotion");
+      }
+
+      setMessage(data.message);
+      fetchPendingBoosts();
+      fetchAllPosts();
+    } catch (error) {
+      setErrorMessage(error.message);
+    }
+  };
+
   const openEditModal = (post) => {
     setEditingPost(post);
     setEditForm({
@@ -355,6 +443,16 @@ function AdminDashboard() {
             handleVerifyPayment={handleVerifyPayment}
             handleRejectPayment={handleRejectPayment}
             verifyingPayment={verifyingPayment}
+          />
+
+          <BoostSection
+            title="Pending Promotion Verifications"
+            posts={pendingBoosts}
+            loading={loadingBoosts}
+            emptyMessage="No pending promotion verifications."
+            handleVerifyBoost={handleVerifyBoost}
+            handleRejectBoost={handleRejectBoost}
+            verifyingBoost={verifyingBoost}
           />
 
           <AdminSection
@@ -759,6 +857,86 @@ function PaymentSection({
                   onClick={() => handleRejectPayment(post._id)}
                 >
                   Reject Payment
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BoostSection({
+  title,
+  posts,
+  loading,
+  emptyMessage,
+  handleVerifyBoost,
+  handleRejectBoost,
+  verifyingBoost,
+}) {
+  return (
+    <div className="admin-section-wrapper">
+      <h2 className="admin-section-title">{title}</h2>
+
+      {loading ? (
+        <p className="admin-info-message">Loading promotion verifications...</p>
+      ) : posts.length === 0 ? (
+        <p className="admin-info-message">{emptyMessage}</p>
+      ) : (
+        <div className="admin-posts-grid">
+          {posts.map((post) => (
+            <div className="admin-post-card" key={post._id}>
+              <div className="admin-post-top">
+                <div>
+                  <span className="admin-status-badge payment-pending" style={{backgroundColor: '#f39c12', color: '#fff'}}>Promotion Pending</span>
+                  <h3>{post.title}</h3>
+                </div>
+                <p className="admin-post-price">
+                  Tier: {post.boostTier.toUpperCase()}
+                </p>
+              </div>
+
+              <div className="admin-post-grid">
+                <div className="admin-info-box">
+                  <span>Selected Tier</span>
+                  <strong>{post.boostTier.toUpperCase()}</strong>
+                </div>
+                <div className="admin-info-box">
+                  <span>Payment Method</span>
+                  <strong>{post.boostPaymentMethod}</strong>
+                </div>
+                <div className="admin-info-box">
+                  <span>Paid Amount</span>
+                  <strong>৳ {Number(post.boostPaymentAmount).toLocaleString()}</strong>
+                </div>
+              </div>
+
+              <div className="admin-section">
+                <h4>Payment Details</h4>
+                <div className="payment-details-grid">
+                  <p><strong>Sender:</strong> {post.boostSender}</p>
+                  <p><strong>Transaction ID:</strong> {post.boostTransactionId}</p>
+                  <p><strong>Method:</strong> {post.boostPaymentMethod}</p>
+                </div>
+              </div>
+
+              <div className="admin-action-buttons">
+                <button
+                  className="approve-post-btn"
+                  onClick={() => handleVerifyBoost(post._id)}
+                  disabled={verifyingBoost === post._id}
+                >
+                  {verifyingBoost === post._id ? "Verifying..." : "Verify Promotion"}
+                </button>
+
+                <button
+                  className="reject-post-btn"
+                  style={{ backgroundColor: '#e74c3c' }}
+                  onClick={() => handleRejectBoost(post._id)}
+                >
+                  Reject
                 </button>
               </div>
             </div>

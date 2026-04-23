@@ -125,7 +125,7 @@ const landSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["bKash", "Nagad", "Rocket", "Bank Transfer"],
+      enum: ["bKash", "Nagad", "Rocket", "Bank Transfer", ""],
       default: "",
       trim: true,
     },
@@ -230,6 +230,43 @@ const landSchema = new mongoose.Schema(
         max: 80,
         default: 30,
       },
+    },
+
+    boostStatus: {
+      type: String,
+      enum: ["none", "pending", "active", "rejected", "expired"],
+      default: "none",
+    },
+    boostTier: {
+      type: String,
+      enum: ["none", "bronze", "silver", "gold"],
+      default: "none",
+    },
+    boostWeight: {
+      type: Number,
+      default: 0,
+    },
+    boostExpiry: {
+      type: Date,
+      default: null,
+    },
+    boostPaymentAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    boostPaymentMethod: {
+      type: String,
+      enum: ["bKash", "Nagad", "Rocket", "Bank Transfer", ""],
+      default: "",
+    },
+    boostTransactionId: {
+      type: String,
+      default: "",
+    },
+    boostSender: {
+      type: String,
+      default: "",
     },
 
     status: {

@@ -68,9 +68,14 @@ function UserDashboard() {
   const [editLocationLoading, setEditLocationLoading] = useState(false);
   const [editLocationResults, setEditLocationResults] = useState([]);
   const [editLocationSearchError, setEditLocationSearchError] = useState("");
-
-
-
+  const [boostingPost, setBoostingPost] = useState(null);
+  const [boostFormData, setBoostFormData] = useState({
+    tier: "bronze",
+    paymentMethod: "bKash",
+    sender: "",
+    transactionId: "",
+  });
+  const [submittingBoost, setSubmittingBoost] = useState(false);
   const fetchMyPosts = async () => {
     try {
       setLoadingPosts(true);
@@ -441,6 +446,73 @@ function UserDashboard() {
       setErrorMessage(error.message);
     } finally {
       setSubmittingEdit(false);
+    }
+  };
+
+  const openBoostModal = (post) => {
+    setBoostingPost(post);
+    setBoostFormData({
+      tier: "bronze",
+      paymentMethod: "bKash",
+      sender: "",
+      transactionId: "",
+    });
+  };
+
+  const closeBoostModal = () => {
+    setBoostingPost(null);
+  };
+
+  const handleBoostChange = (e) => {
+    const { name, value } = e.target;
+    setBoostFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleBoostSubmit = async (e) => {
+    e.preventDefault();
+    if (!boostFormData.sender || !boostFormData.transactionId) {
+      setErrorMessage("Please enter sender number and transaction ID.");
+      return;
+    }
+
+    setMessage("");
+    setErrorMessage("");
+    setSubmittingBoost(true);
+
+    let amount = 0;
+    if (boostFormData.tier === "bronze") amount = 500;
+    else if (boostFormData.tier === "silver") amount = 1000;
+    else if (boostFormData.tier === "gold") amount = 2000;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/lands/my-posts/${boostingPost._id}/boost`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          boostTier: boostFormData.tier,
+          boostPaymentMethod: boostFormData.paymentMethod,
+          boostSender: boostFormData.sender,
+          boostTransactionId: boostFormData.transactionId,
+          boostPaymentAmount: amount,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || "Failed to submit promotion request");
+      }
+
+      setMessage(data.message);
+      closeBoostModal();
+      fetchMyPosts();
+    } catch (error) {
+      setErrorMessage(error.message);
+    } finally {
+      setSubmittingBoost(false);
     }
   };
 
@@ -1144,6 +1216,17 @@ function UserDashboard() {
               </div>
 
               <div className="request-action-buttons">
+                {post.status === 'approved' && post.boostStatus !== 'pending' && post.boostStatus !== 'active' && (
+                  <button
+                    type="button"
+                    className="review-btn"
+                    style={{ backgroundColor: '#f39c12' }}
+                    onClick={() => openBoostModal(post)}
+                  >
+                    Promote
+                  </button>
+                )}
+
                 <button
                   type="button"
                   className="review-btn"
@@ -1329,6 +1412,97 @@ function UserDashboard() {
           })}
         </div>
       </div>
+
+      {boostingPost && (
+        <div className="dashboard-modal-overlay">
+          <div className="dashboard-edit-modal">
+            <div className="dashboard-modal-header">
+              <h2>Promote Your Listing</h2>
+              <button type="button" className="dashboard-modal-close" onClick={closeBoostModal}>
+                ×
+              </button>
+            </div>
+
+            <form className="dashboard-edit-form" onSubmit={handleBoostSubmit}>
+              <div className="form-section">
+                <h2>Select Promotion Tier</h2>
+                <div className="form-grid">
+                  <div className="form-group full-width">
+                    <label>Tier</label>
+                    <select
+                      name="tier"
+                      value={boostFormData.tier}
+                      onChange={handleBoostChange}
+                    >
+                      <option value="bronze">Bronze (500 BDT / 7 Days)</option>
+                      <option value="silver">Silver (1000 BDT / 15 Days)</option>
+                      <option value="gold">Gold (2000 BDT / 30 Days)</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group full-width payment-panel">
+                    <h3>Promotion Fee Payment</h3>
+                    <p>
+                      Please send the required amount using one of the available methods below,
+                      then enter your transaction details.
+                    </p>
+                    <ul>
+                      <li><strong>Amount:</strong> {boostFormData.tier === "bronze" ? "500" : boostFormData.tier === "silver" ? "1000" : "2000"} BDT</li>
+                      <li><strong>bKash/Nagad/Rocket</strong>: 01712164124</li>
+                    </ul>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Payment Method</label>
+                    <select
+                      name="paymentMethod"
+                      value={boostFormData.paymentMethod}
+                      onChange={handleBoostChange}
+                    >
+                      <option value="bKash">bKash</option>
+                      <option value="Nagad">Nagad</option>
+                      <option value="Rocket">Rocket</option>
+                      <option value="Bank Transfer">Bank Transfer</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Sender Number / Account</label>
+                    <input
+                      name="sender"
+                      placeholder="Your mobile number or bank account"
+                      value={boostFormData.sender}
+                      onChange={handleBoostChange}
+                      required
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Transaction ID</label>
+                    <input
+                      name="transactionId"
+                      placeholder="Transaction or reference ID"
+                      value={boostFormData.transactionId}
+                      onChange={handleBoostChange}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-actions" style={{ marginTop: "20px" }}>
+                <div style={{ width: "100%", marginBottom: "15px" }}>
+                  {message && <p className="success-message">{message}</p>}
+                  {errorMessage && <p className="error-message">{errorMessage}</p>}
+                </div>
+                <button type="submit" className="submit-post-btn" disabled={submittingBoost}>
+                  {submittingBoost ? "Submitting..." : "Submit Promotion Request"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {editingPost && (
         <div className="dashboard-modal-overlay">
